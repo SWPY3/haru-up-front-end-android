@@ -17,6 +17,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.swyp.haruup.core.designsystem.HaruUpColor
 import com.swyp.haruup.core.designsystem.HaruUpTheme
 import com.swyp.haruup.presentation.home.component.AddMissionRow
+import com.swyp.haruup.presentation.home.component.ChallengeStreakSheet
+import com.swyp.haruup.presentation.home.component.MissionActionSheet
+import com.swyp.haruup.presentation.home.component.MissionCompleteDialog
+import com.swyp.haruup.presentation.home.component.MissionDeleteConfirmSheet
 import com.swyp.haruup.presentation.home.component.EmptyMissionCard
 import com.swyp.haruup.presentation.home.component.HomeHeader
 import com.swyp.haruup.presentation.home.component.HomeMissionCard
@@ -45,8 +49,38 @@ fun HomeScreen(
         uiState = uiState,
         onBubbleClick = viewModel::onBubbleClick,
         onInfoClick = viewModel::onInfoClick,
+        onChallengeClick = viewModel::onChallengeClick,
+        onMissionSettingClick = viewModel::onMissionSettingClick,
         modifier = modifier,
     )
+
+    uiState.actionSheetMission?.let { mission ->
+        MissionActionSheet(
+            missionTitle = mission.content,
+            onCompleteClick = viewModel::onCompleteClick,
+            onDeleteClick = viewModel::onDeleteClick,
+            onDismiss = viewModel::onActionSheetDismiss,
+        )
+    }
+
+    uiState.deleteConfirmMission?.let {
+        MissionDeleteConfirmSheet(
+            onDelete = viewModel::onDeleteConfirm,
+            onCancel = viewModel::onDeleteCancel,
+        )
+    }
+
+    uiState.completedExp?.let { exp ->
+        MissionCompleteDialog(expEarned = exp, onConfirm = viewModel::onCompleteConfirm)
+    }
+
+    if (uiState.isStreakSheetVisible) {
+        ChallengeStreakSheet(
+            challengeDay = uiState.challengeDay,
+            dailyMissions = uiState.dailyMissions,
+            onConfirm = viewModel::onStreakSheetDismiss,
+        )
+    }
 }
 
 @Composable
@@ -54,6 +88,8 @@ private fun HomeContent(
     uiState: HomeUiState,
     onBubbleClick: () -> Unit,
     onInfoClick: () -> Unit,
+    onChallengeClick: () -> Unit,
+    onMissionSettingClick: (MissionItem) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -69,8 +105,7 @@ private fun HomeContent(
                 challengeDay = uiState.challengeDay,
                 isDaytime = HomeViewModel.isDaytime(),
                 onBubbleClick = onBubbleClick,
-                // TODO: 연속 달성 바텀시트를 띄우도록 교체
-                onChallengeClick = {},
+                onChallengeClick = onChallengeClick,
             )
             Spacer(Modifier.height(HEADER_TO_SECTION))
         }
@@ -92,8 +127,7 @@ private fun HomeContent(
                 HomeMissionCard(
                     mission = mission,
                     isCompleted = uiState.isCompleted(mission.id),
-                    // TODO: 미션 상세 바텀시트를 띄우도록 교체
-                    onSettingClick = {},
+                    onSettingClick = { onMissionSettingClick(mission) },
                 )
             }
 
@@ -134,7 +168,7 @@ private fun HomePreview() {
                 todayMissions = previewMissions,
                 completedMissionIds = setOf(3),
             ),
-            onBubbleClick = {}, onInfoClick = {},
+            onBubbleClick = {}, onInfoClick = {}, onChallengeClick = {}, onMissionSettingClick = {},
         )
     }
 }
@@ -145,7 +179,7 @@ private fun HomeEmptyPreview() {
     HaruUpTheme {
         HomeContent(
             uiState = HomeUiState(memberInfo = previewMemberInfo, isTooltipVisible = true),
-            onBubbleClick = {}, onInfoClick = {},
+            onBubbleClick = {}, onInfoClick = {}, onChallengeClick = {}, onMissionSettingClick = {},
         )
     }
 }

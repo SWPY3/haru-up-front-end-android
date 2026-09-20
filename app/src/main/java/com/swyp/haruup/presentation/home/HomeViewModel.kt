@@ -21,6 +21,14 @@ data class HomeUiState(
     /** 완료 처리한 미션 ID */
     val completedMissionIds: Set<Int> = emptySet(),
     val isTooltipVisible: Boolean = false,
+    /** 상세 시트를 열어 둔 미션. null 이면 시트가 닫힌 상태입니다. */
+    val actionSheetMission: MissionItem? = null,
+    /** 삭제 확인 시트를 열어 둔 미션 */
+    val deleteConfirmMission: MissionItem? = null,
+    /** 완료 축하 알림에 표시할 경험치. null 이면 닫힌 상태입니다. */
+    val completedExp: Int? = null,
+    val isStreakSheetVisible: Boolean = false,
+    val dailyMissions: List<DailyMission> = emptyList(),
 ) {
     val hasMissions: Boolean = todayMissions.isNotEmpty()
 
@@ -77,6 +85,73 @@ class HomeViewModel @Inject constructor() : ViewModel() {
     /** TODO: 오늘의 미션 조회 API 로 교체 */
     fun setTodayMissions(missions: List<MissionItem>) {
         _uiState.update { it.copy(todayMissions = missions) }
+    }
+
+    // MARK: - 미션 상세 시트
+
+    fun onMissionSettingClick(mission: MissionItem) {
+        _uiState.update { it.copy(actionSheetMission = mission) }
+    }
+
+    fun onActionSheetDismiss() {
+        _uiState.update { it.copy(actionSheetMission = null) }
+    }
+
+    /**
+     * 미션을 완료 처리합니다.
+     * TODO: 미션 상태 변경 API(COMPLETED) 를 호출하도록 교체
+     */
+    fun onCompleteClick() {
+        val mission = _uiState.value.actionSheetMission ?: return
+
+        _uiState.update {
+            it.copy(
+                actionSheetMission = null,
+                completedMissionIds = it.completedMissionIds + mission.id,
+                completedExp = mission.expEarned,
+            )
+        }
+    }
+
+    fun onCompleteConfirm() {
+        _uiState.update { it.copy(completedExp = null) }
+    }
+
+    // MARK: - 미션 삭제
+
+    /** 삭제는 한 번 더 확인을 받습니다. */
+    fun onDeleteClick() {
+        _uiState.update { it.copy(deleteConfirmMission = it.actionSheetMission, actionSheetMission = null) }
+    }
+
+    fun onDeleteCancel() {
+        _uiState.update { it.copy(deleteConfirmMission = null) }
+    }
+
+    /**
+     * 미션을 목록에서 지웁니다.
+     * TODO: 미션 상태 변경 API(INACTIVE) 를 호출하도록 교체
+     */
+    fun onDeleteConfirm() {
+        val mission = _uiState.value.deleteConfirmMission ?: return
+
+        _uiState.update {
+            it.copy(
+                deleteConfirmMission = null,
+                todayMissions = it.todayMissions.filterNot { item -> item.id == mission.id },
+                completedMissionIds = it.completedMissionIds - mission.id,
+            )
+        }
+    }
+
+    // MARK: - 연속 달성 시트
+
+    fun onChallengeClick() {
+        _uiState.update { it.copy(isStreakSheetVisible = true) }
+    }
+
+    fun onStreakSheetDismiss() {
+        _uiState.update { it.copy(isStreakSheetVisible = false) }
     }
 
     companion object {

@@ -53,3 +53,16 @@ private fun characterImageRes(characterId: Int, level: Int): Int {
         else -> if (isNaru) R.drawable.home_character_naru_level1 else R.drawable.home_character_haru_level1
     }
 }
+
+/** 연속 달성 시트의 하루 상태. iOS 의 MissionChallengeStatus 에 대응합니다. */
+enum class MissionChallengeStatus(@DrawableRes val iconRes: Int) {
+    COMPLETED(R.drawable.ic_challenge_success),
+    FAILED(R.drawable.ic_challenge_fail),
+    NONE(R.drawable.ic_challenge_none),
+}
+
+/** 연속 달성 시트에 한 칸씩 그려지는 하루 */
+data class DailyMission(
+    val dayLabel: String,
+    val status: MissionChallengeStatus,
+)
