@@ -11,6 +11,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
 import com.swyp.haruup.presentation.agree.AgreeScreen
 import com.swyp.haruup.presentation.curation.CurationScreen
+import com.swyp.haruup.presentation.curation.character.CharacterCompleteScreen
 import com.swyp.haruup.presentation.curation.character.CharacterSelectScreen
 import com.swyp.haruup.presentation.curation.curationViewModel
 import com.swyp.haruup.presentation.login.LoginScreen
@@ -87,13 +88,20 @@ private fun NavGraphBuilder.curationGraph(navController: NavHostController) {
             )
         }
 
-        // TODO: ② 캐릭터 선택 완료 → ③ 성격 선택 → ④ 큐레이션 챗봇 순으로 교체
         composable(CurationRoute.CHARACTER_COMPLETE) { entry ->
             val curationViewModel = entry.curationViewModel(navController)
             val curationData by curationViewModel.curationData.collectAsStateWithLifecycle()
 
+            CharacterCompleteScreen(
+                // 캐릭터 선택을 거치지 않고 들어올 일은 없지만, iOS 와 동일하게 1 을 기본값으로 둡니다.
+                characterId = curationData.characterId ?: 1,
+                onFinished = { navController.navigate(CurationRoute.PERSONALITY) },
+            )
+        }
+
+        // TODO: ③ 성격 선택 → ④ 큐레이션 챗봇 순으로 교체
+        composable(CurationRoute.PERSONALITY) {
             CurationScreen(
-                curationSummary = "선택한 캐릭터 ID: ${curationData.characterId ?: "없음"}",
                 onCompleted = {
                     navController.navigate(Route.MAIN_TAB) {
                         popUpTo(Route.LOGIN) { inclusive = true }
