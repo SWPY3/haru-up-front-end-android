@@ -90,6 +90,13 @@ object HaruUpType {
     val calendarWeek = haruUpStyle(13, FontWeight.Medium)
     val calendarDay = haruUpStyle(13, FontWeight.Medium)
 
+    /**
+     * 소셜 로그인 버튼.
+     * iOS 는 Typography 에 정의하지 않고 systemFont(19, semiBold) 를 직접 지정합니다.
+     * 여기서는 앱 전체 일관성을 위해 Pretendard SemiBold 를 씁니다.
+     */
+    val socialLogin = haruUpStyle(19, FontWeight.SemiBold)
+
     // Chart
     val yText = haruUpStyle(11, FontWeight.Medium, 1.00f)
     val xText = haruUpStyle(13, FontWeight.Medium, 1.00f)

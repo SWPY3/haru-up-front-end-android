@@ -33,7 +33,11 @@ fun HaruUpNavHost() {
         }
 
         composable(Route.LOGIN) {
-            LoginScreen(onLoginSuccess = { navController.navigate(Route.AGREE) })
+            // TODO: SDK 연동 후 실제 로그인 결과에 따라 이동하도록 교체
+            LoginScreen(
+                onKakaoLoginClick = { navController.navigate(Route.AGREE) },
+                onNaverLoginClick = { navController.navigate(Route.AGREE) },
+            )
         }
 
         composable(Route.AGREE) {
