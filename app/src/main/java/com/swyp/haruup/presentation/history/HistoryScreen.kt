@@ -24,6 +24,7 @@ import com.swyp.haruup.presentation.mission.MissionDifficulty
 import com.swyp.haruup.presentation.mission.MissionItem
 import com.swyp.haruup.presentation.history.component.CalendarCard
 import com.swyp.haruup.presentation.history.component.DailyMissionCard
+import com.swyp.haruup.presentation.history.component.GrowthChartCard
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -90,7 +91,9 @@ private fun HistoryContent(
             missions = uiState.selectedMissions,
         )
 
-        // TODO: 성장 차트 추가
+        if (uiState.growthPoints.isNotEmpty()) {
+            GrowthChartCard(points = uiState.growthPoints)
+        }
     }
 }
 
@@ -113,6 +116,13 @@ private fun HistoryPreview() {
                     ),
                     totalMissionCount = 11,
                     totalCompletedDays = 4,
+                ),
+                growthPoints = listOf(
+                    GrowthPoint("5월", 8),
+                    GrowthPoint("6월", 14),
+                    GrowthPoint("7월", 11),
+                    GrowthPoint("8월", 19),
+                    GrowthPoint("9월", 23),
                 ),
                 missionsByDate = mapOf(
                     LocalDate.of(2026, 9, 12) to listOf(

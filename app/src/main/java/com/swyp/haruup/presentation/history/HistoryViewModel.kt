@@ -17,6 +17,8 @@ data class HistoryUiState(
     val summary: MonthlyMissionSummary = MonthlyMissionSummary(),
     /** 날짜별로 그날 완료한 미션 목록 */
     val missionsByDate: Map<LocalDate, List<MissionItem>> = emptyMap(),
+    /** 성장 차트에 쓰는 최근 5개월 달성일 */
+    val growthPoints: List<GrowthPoint> = emptyList(),
     val isLoading: Boolean = false,
 ) {
     /** 선택한 날짜에 완료한 미션 */
@@ -76,5 +78,10 @@ class HistoryViewModel @Inject constructor() : ViewModel() {
     /** TODO: 날짜별 미션 조회 API 로 교체 */
     fun setMissionsByDate(missionsByDate: Map<LocalDate, List<MissionItem>>) {
         _uiState.update { it.copy(missionsByDate = missionsByDate) }
+    }
+
+    /** TODO: 성장 데이터 조회 API 로 교체 */
+    fun setGrowthPoints(points: List<GrowthPoint>) {
+        _uiState.update { it.copy(growthPoints = points) }
     }
 }
