@@ -91,6 +91,12 @@ object HaruUpType {
     val calendarDay = haruUpStyle(13, FontWeight.Medium)
 
     /**
+     * 온보딩 제목.
+     * title2 와 크기·굵기는 같고 lineHeight 만 138% 입니다. (iOS OnboardingPageView)
+     */
+    val onboardingTitle = haruUpStyle(24, FontWeight.SemiBold, 1.38f)
+
+    /**
      * 소셜 로그인 버튼.
      * iOS 는 Typography 에 정의하지 않고 systemFont(19, semiBold) 를 직접 지정합니다.
      * 여기서는 앱 전체 일관성을 위해 Pretendard SemiBold 를 씁니다.
