@@ -104,11 +104,19 @@ app/src/main/java/com/swyp/haruup/
 
 앱 키는 `local.properties` 또는 `secrets.properties` 에 두고 `BuildConfig` 로 주입합니다. 두 파일 모두 gitignore 처리돼 있습니다.
 
-**2. 디자인 리소스 이관**
-- `Resources/Assets.xcassets/color` → `core/designsystem/Color.kt`
-- `Resources/Fonts` → `res/font` + `Type.kt`
-- `Resources/Animations` (Lottie JSON) → `res/raw`
-- AppIcon → `res/mipmap` (현재 임시 아이콘)
+**2. 디자인 리소스 이관** — ✅ 완료
+
+| iOS | Android | 비고 |
+|-----|---------|------|
+| `Assets.xcassets/color` (47종) | `core/designsystem/Color.kt` | 에셋명을 그대로 사용 |
+| `Fonts/Pretendard` (9종) | `res/font/pretendard_*.ttf` | |
+| `Fonts/Typography.swift` (25종) | `core/designsystem/Type.kt` | `HaruUpType.body1` 형태로 이름 일치 |
+| `Animations/*.json` (4종) | `res/raw/` | `loadingCircle` → `loading_circle` |
+| `AppIcon.appiconset` | `res/mipmap-*/` | 레거시 + Adaptive 아이콘 생성 |
+
+화면 이관 시 iOS 에셋명으로 검색하면 대응되는 Kotlin 상수를 찾을 수 있습니다.
+
+아직 옮기지 않은 이미지 에셋(캐릭터, 아이콘, 버튼 등)은 화면을 구현하면서 필요한 것부터 추가합니다.
 
 **3. 화면 구현 순서 (권장)**
 로그인 → 큐레이션 → 홈 → 기록/차트 → 마이페이지
