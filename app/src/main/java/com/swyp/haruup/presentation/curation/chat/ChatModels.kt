@@ -14,6 +14,8 @@ data class ChatMessage(
     val text: String,
     /** 본문 안에서 강조할 부분 문자열 */
     val highlightedText: String? = null,
+    /** 봇 메시지에만 붙습니다. 말풍선 아래에 칩 줄로 그려집니다. */
+    val suggestions: List<String> = emptyList(),
     /** 말풍선 아래에 작게 붙는 보조 문구 */
     val subtitleText: String? = null,
     /** 응답을 기다리는 중이면 글자에 shimmer 를 입힙니다. */

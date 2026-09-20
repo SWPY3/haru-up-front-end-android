@@ -24,5 +24,10 @@ object ApiPath {
         const val SELECT_PERSONALITY = "api/character/personality"
     }
 
+    object Profile {
+        const val NICKNAME_DUPLICATE_CHECK = "api/member/profile/nickName_duplicate_check"
+        const val PROFILE = "api/member/profile/profile"
+    }
+
     // TODO: Mission / Member / Chart / Interests / Job / Notification / Ad 경로 이관
 }

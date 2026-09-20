@@ -29,11 +29,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.swyp.haruup.R
 import com.swyp.haruup.core.designsystem.HaruUpColor
 import com.swyp.haruup.core.designsystem.HaruUpTheme
+import com.swyp.haruup.data.model.ChatbotMission
 import com.swyp.haruup.presentation.curation.character.CharacterMate
 import com.swyp.haruup.presentation.curation.chat.component.BotMessageBubble
 import com.swyp.haruup.presentation.curation.chat.component.ChatInputBar
@@ -51,6 +53,9 @@ private val AVATAR_SIZE = 48.dp
 private val AVATAR_TOP_MARGIN = 8.dp
 private val AVATAR_BOTTOM_MARGIN = 8.dp
 
+/** 완료 문구를 읽을 시간을 준 뒤 이동합니다. */
+private const val COMPLETION_DELAY_MILLIS = 1_000L
+
 /**
  * 큐레이션 4단계. iOS 의 CurationChatViewController 에 대응합니다.
  *
@@ -61,12 +66,21 @@ private val AVATAR_BOTTOM_MARGIN = 8.dp
 fun CurationChatScreen(
     characterId: Int,
     onCloseClick: () -> Unit,
+    onCompleted: (nickname: String, missions: List<ChatbotMission>) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: CurationChatViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) { viewModel.onStart() }
+
+    // 완료 문구를 잠깐 보여준 뒤 다음 화면으로 넘어갑니다. (iOS 도 1초 지연)
+    LaunchedEffect(uiState.isCompleted) {
+        if (uiState.isCompleted) {
+            delay(COMPLETION_DELAY_MILLIS)
+            onCompleted(viewModel.collectedNickname, viewModel.completedMissions)
+        }
+    }
 
     CurationChatContent(
         uiState = uiState,
@@ -191,26 +205,42 @@ private fun CurationChatPreview() {
     HaruUpTheme {
         CurationChatContent(
             uiState = CurationChatUiState(
-                displayItems = listOf(
-                    ChatDisplayItem.Bot(
-                        ChatMessage(
-                            type = ChatMessageType.BOT,
-                            text = "안녕하세요! 어떤 목표를 이루고 싶으신가요?",
-                        )
+                messages = listOf(
+                    ChatMessage(
+                        type = ChatMessageType.BOT,
+                        text = "안녕하세요! 어떤 목표를 이루고 싶으신가요?",
                     ),
-                    ChatDisplayItem.User(
-                        ChatMessage(type = ChatMessageType.USER, text = "영어 실력을 키우고 싶어요")
+                    ChatMessage(type = ChatMessageType.USER, text = "영어 실력을 키우고 싶어요"),
+                    ChatMessage(
+                        type = ChatMessageType.BOT,
+                        text = "좋아요! 하루에 어느 정도 투자할 수 있나요?",
+                        suggestions = listOf("30분 이하", "1시간 정도", "2시간 이상"),
+                        subtitleText = "마지막 질문이에요!",
                     ),
-                    ChatDisplayItem.Bot(
-                        ChatMessage(
-                            type = ChatMessageType.BOT,
-                            text = "좋아요! 하루에 어느 정도 투자할 수 있나요?",
-                            subtitleText = "편하게 답해주세요",
-                        )
-                    ),
-                    ChatDisplayItem.SuggestionChips(listOf("30분 이하", "1시간 정도", "2시간 이상")),
                 ),
                 progress = 0.4f,
+            ),
+            characterId = 1,
+            onCloseClick = {}, onInputChange = {}, onSendClick = {}, onSuggestionClick = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, device = "id:pixel_7", name = "목표 재입력 안내")
+@Composable
+private fun CurationChatGoalRejectedPreview() {
+    HaruUpTheme {
+        CurationChatContent(
+            uiState = CurationChatUiState(
+                messages = listOf(
+                    ChatMessage(
+                        type = ChatMessageType.BOT,
+                        text = "목표를 하나만 입력해주세요!",
+                        highlightedText = "목표를 하나만 입력해주세요!",
+                        subtitleText = "입력하신 목표: 영어 공부, 운동",
+                        isError = true,
+                    ),
+                ),
             ),
             characterId = 1,
             onCloseClick = {}, onInputChange = {}, onSendClick = {}, onSuggestionClick = {},
