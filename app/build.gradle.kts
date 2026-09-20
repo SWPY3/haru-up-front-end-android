@@ -64,6 +64,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.activity.compose)
     implementation(libs.kotlinx.coroutines.android)
 
@@ -94,6 +95,9 @@ dependencies {
 
     // Animation
     implementation(libs.lottie.compose)
+
+    // 약관 원문을 Custom Tabs 로 띄운다. iOS 의 인앱 웹뷰에 대응한다.
+    implementation(libs.androidx.browser)
 
     // Test
     testImplementation(libs.junit)

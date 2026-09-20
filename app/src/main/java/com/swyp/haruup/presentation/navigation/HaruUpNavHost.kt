@@ -41,7 +41,10 @@ fun HaruUpNavHost() {
         }
 
         composable(Route.AGREE) {
-            AgreeScreen(onAgreed = { navController.navigate(Route.ONBOARDING) })
+            AgreeScreen(
+                onBackClick = { navController.popBackStack() },
+                onAgreed = { navController.navigate(Route.ONBOARDING) },
+            )
         }
 
         composable(Route.ONBOARDING) {
