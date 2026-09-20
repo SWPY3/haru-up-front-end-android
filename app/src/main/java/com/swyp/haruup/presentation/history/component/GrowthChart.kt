@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -104,10 +105,8 @@ private fun DrawScope.drawChart(
     val chartTop = bubbleSpacePx
     val chartHeight = size.height - bubbleSpacePx
 
-    // 점이 하나뿐이면 가운데에 둡니다.
-    fun xOf(index: Int): Float =
-        if (points.size == 1) size.width / 2
-        else size.width * index / (points.size - 1)
+    // 오버레이가 각 점을 칸 가운데에 두므로 선도 같은 기준을 씁니다.
+    fun xOf(index: Int): Float = size.width * (index + 0.5f) / points.size
 
     fun yOf(value: Int): Float =
         chartTop + chartHeight * (1f - value.toFloat() / maxValue)
@@ -176,7 +175,11 @@ private fun PointOverlay(
             val pointY = BUBBLE_SPACE + CHART_HEIGHT * (1f - point.value.toFloat() / maxValue)
             val circleRadius = (if (isLast) LAST_POINT_GLOW else POINT_OUTER) / 2
 
-            Box(modifier = Modifier.weight(1f)) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+            ) {
                 // 아래쪽을 기준으로 잡으면 라벨 높이를 몰라도 점 위치를 정확히 맞출 수 있습니다.
                 Column(
                     modifier = Modifier
