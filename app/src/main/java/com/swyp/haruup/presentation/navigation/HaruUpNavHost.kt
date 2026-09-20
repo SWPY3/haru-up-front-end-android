@@ -10,9 +10,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
 import com.swyp.haruup.presentation.agree.AgreeScreen
-import com.swyp.haruup.presentation.curation.CurationScreen
 import com.swyp.haruup.presentation.curation.character.CharacterCompleteScreen
 import com.swyp.haruup.presentation.curation.character.CharacterSelectScreen
+import com.swyp.haruup.presentation.curation.chat.CurationChatScreen
 import com.swyp.haruup.presentation.curation.curationViewModel
 import com.swyp.haruup.presentation.curation.personality.PersonalitySelectScreen
 import com.swyp.haruup.presentation.login.LoginScreen
@@ -111,14 +111,14 @@ private fun NavGraphBuilder.curationGraph(navController: NavHostController) {
             )
         }
 
-        // TODO: ④ 큐레이션 챗봇으로 교체
-        composable(CurationRoute.CHAT) {
-            CurationScreen(
-                onCompleted = {
-                    navController.navigate(Route.MAIN_TAB) {
-                        popUpTo(Route.LOGIN) { inclusive = true }
-                    }
-                },
+        composable(CurationRoute.CHAT) { entry ->
+            val curationViewModel = entry.curationViewModel(navController)
+            val curationData by curationViewModel.curationData.collectAsStateWithLifecycle()
+
+            CurationChatScreen(
+                characterId = curationData.characterId ?: 1,
+                // TODO: 종료 확인 모달을 띄우도록 교체
+                onCloseClick = { navController.popBackStack() },
             )
         }
     }
