@@ -14,6 +14,7 @@ import com.swyp.haruup.presentation.curation.CurationScreen
 import com.swyp.haruup.presentation.curation.character.CharacterCompleteScreen
 import com.swyp.haruup.presentation.curation.character.CharacterSelectScreen
 import com.swyp.haruup.presentation.curation.curationViewModel
+import com.swyp.haruup.presentation.curation.personality.PersonalitySelectScreen
 import com.swyp.haruup.presentation.login.LoginScreen
 import com.swyp.haruup.presentation.maintab.MainTabScreen
 import com.swyp.haruup.presentation.onboarding.OnboardingScreen
@@ -99,8 +100,19 @@ private fun NavGraphBuilder.curationGraph(navController: NavHostController) {
             )
         }
 
-        // TODO: ③ 성격 선택 → ④ 큐레이션 챗봇 순으로 교체
-        composable(CurationRoute.PERSONALITY) {
+        composable(CurationRoute.PERSONALITY) { entry ->
+            val curationViewModel = entry.curationViewModel(navController)
+
+            PersonalitySelectScreen(
+                onCompleted = { code ->
+                    curationViewModel.setPersonality(code)
+                    navController.navigate(CurationRoute.CHAT)
+                },
+            )
+        }
+
+        // TODO: ④ 큐레이션 챗봇으로 교체
+        composable(CurationRoute.CHAT) {
             CurationScreen(
                 onCompleted = {
                     navController.navigate(Route.MAIN_TAB) {
