@@ -6,6 +6,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.swyp.haruup.presentation.agree.AgreeScreen
 import com.swyp.haruup.presentation.curation.CurationScreen
+import com.swyp.haruup.presentation.curation.character.CharacterSelectScreen
 import com.swyp.haruup.presentation.login.LoginScreen
 import com.swyp.haruup.presentation.maintab.MainTabScreen
 import com.swyp.haruup.presentation.onboarding.OnboardingScreen
@@ -48,10 +49,19 @@ fun HaruUpNavHost() {
         }
 
         composable(Route.ONBOARDING) {
-            OnboardingScreen(onFinished = { navController.navigate(Route.CURATION) })
+            OnboardingScreen(onFinished = { navController.navigate(Route.CURATION_CHARACTER) })
         }
 
-        composable(Route.CURATION) {
+        composable(Route.CURATION_CHARACTER) {
+            CharacterSelectScreen(
+                onNextClick = { characterId ->
+                    // TODO: 선택한 characterId 를 이후 단계까지 전달하도록 교체
+                    navController.navigate(Route.CURATION_REST)
+                },
+            )
+        }
+
+        composable(Route.CURATION_REST) {
             CurationScreen(
                 onCompleted = {
                     navController.navigate(Route.MAIN_TAB) {

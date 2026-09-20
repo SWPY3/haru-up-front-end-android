@@ -4,11 +4,10 @@ import androidx.compose.runtime.Composable
 import com.swyp.haruup.core.component.PlaceholderScreen
 
 /**
- * iOS 의 Presentation/Curation 에 대응합니다.
- * 닉네임 → 생일 → 성별 → 직업 → 관심사 → 목표 순 9단계이며,
- * 단계별 화면을 이 패키지 하위에 추가하고 내부 NavHost 로 연결합니다.
+ * 큐레이션의 아직 구현하지 않은 단계를 대신하는 자리표시자입니다.
+ * 남은 단계: 캐릭터 선택 완료 → 성격 선택 → 큐레이션 챗봇 → 오늘의 미션 선택
  */
 @Composable
 fun CurationScreen(onCompleted: () -> Unit) {
-    PlaceholderScreen(title = "큐레이션 (9단계)", buttonText = "완료", onButtonClick = onCompleted)
+    PlaceholderScreen(title = "큐레이션 — 남은 단계", buttonText = "완료", onButtonClick = onCompleted)
 }
