@@ -16,6 +16,9 @@ import com.swyp.haruup.presentation.curation.chat.CurationChatScreen
 import com.swyp.haruup.presentation.curation.curationViewModel
 import com.swyp.haruup.presentation.curation.personality.PersonalitySelectScreen
 import com.swyp.haruup.presentation.login.LoginScreen
+import com.swyp.haruup.presentation.mission.MissionDifficulty
+import com.swyp.haruup.presentation.mission.MissionItem
+import com.swyp.haruup.presentation.mission.TodayMissionScreen
 import com.swyp.haruup.presentation.maintab.MainTabScreen
 import com.swyp.haruup.presentation.onboarding.OnboardingScreen
 import com.swyp.haruup.presentation.splash.SplashScreen
@@ -119,7 +122,28 @@ private fun NavGraphBuilder.curationGraph(navController: NavHostController) {
                 characterId = curationData.characterId ?: 1,
                 onCompleted = { nickname, missions ->
                     curationViewModel.setChatResult(nickname, missions)
-                    // TODO: chatbotSetup 호출 후 오늘의 미션 선택 화면으로 이동하도록 교체
+                    // TODO: chatbotSetup 을 호출한 뒤 이동하도록 교체
+                    navController.navigate(CurationRoute.TODAY_MISSION)
+                },
+            )
+        }
+
+        composable(CurationRoute.TODAY_MISSION) { entry ->
+            val curationViewModel = entry.curationViewModel(navController)
+            val curationData by curationViewModel.curationData.collectAsStateWithLifecycle()
+
+            TodayMissionScreen(
+                missions = curationData.chatbotMissions.map { mission ->
+                    MissionItem(
+                        id = mission.id,
+                        content = mission.missionContent,
+                        description = mission.missionDescription,
+                        difficulty = MissionDifficulty.from(mission.difficulty),
+                        expEarned = mission.expEarned,
+                    )
+                },
+                onCompleted = {
+                    // TODO: 선택한 미션 ID 를 미션 선택 API 로 보내도록 교체
                     navController.navigate(Route.MAIN_TAB) {
                         popUpTo(Route.LOGIN) { inclusive = true }
                     }

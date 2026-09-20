@@ -40,6 +40,9 @@ object CurationRoute {
 
     /** ④ 큐레이션 챗봇 */
     const val CHAT = "curation/chat"
+
+    /** 큐레이션 직후 오늘의 미션 선택 */
+    const val TODAY_MISSION = "curation/today_mission"
 }
 
 /** 메인 탭 하위 경로 */
