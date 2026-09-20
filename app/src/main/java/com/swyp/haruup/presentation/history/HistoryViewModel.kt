@@ -1,6 +1,7 @@
 package com.swyp.haruup.presentation.history
 
 import androidx.lifecycle.ViewModel
+import com.swyp.haruup.presentation.mission.MissionItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,8 +15,16 @@ data class HistoryUiState(
     val yearMonth: YearMonth = YearMonth.now(),
     val selectedDate: LocalDate = LocalDate.now(),
     val summary: MonthlyMissionSummary = MonthlyMissionSummary(),
+    /** 날짜별로 그날 완료한 미션 목록 */
+    val missionsByDate: Map<LocalDate, List<MissionItem>> = emptyMap(),
     val isLoading: Boolean = false,
 ) {
+    /** 선택한 날짜에 완료한 미션 */
+    val selectedMissions: List<MissionItem> = missionsByDate[selectedDate].orEmpty()
+
+    val selectedDateLabel: String =
+        "${selectedDate.monthValue}월 ${selectedDate.dayOfMonth}일 완료한 미션"
+
     val days: List<CalendarDay> = buildCalendarGrid(yearMonth)
 
     val monthLabel: String = "${yearMonth.year}년 ${yearMonth.monthValue}월"
@@ -62,5 +71,10 @@ class HistoryViewModel @Inject constructor() : ViewModel() {
     /** TODO: 월별 기록 조회 API 로 교체 */
     fun setSummary(summary: MonthlyMissionSummary) {
         _uiState.update { it.copy(summary = summary) }
+    }
+
+    /** TODO: 날짜별 미션 조회 API 로 교체 */
+    fun setMissionsByDate(missionsByDate: Map<LocalDate, List<MissionItem>>) {
+        _uiState.update { it.copy(missionsByDate = missionsByDate) }
     }
 }

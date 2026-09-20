@@ -20,7 +20,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.swyp.haruup.core.designsystem.HaruUpColor
 import com.swyp.haruup.core.designsystem.HaruUpTheme
 import com.swyp.haruup.core.designsystem.HaruUpType
+import com.swyp.haruup.presentation.mission.MissionDifficulty
+import com.swyp.haruup.presentation.mission.MissionItem
 import com.swyp.haruup.presentation.history.component.CalendarCard
+import com.swyp.haruup.presentation.history.component.DailyMissionCard
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -82,7 +85,12 @@ private fun HistoryContent(
             onDayClick = onDayClick,
         )
 
-        // TODO: 선택한 날짜의 미션 목록, 성장 차트 추가
+        DailyMissionCard(
+            title = uiState.selectedDateLabel,
+            missions = uiState.selectedMissions,
+        )
+
+        // TODO: 성장 차트 추가
     }
 }
 
@@ -105,6 +113,12 @@ private fun HistoryPreview() {
                     ),
                     totalMissionCount = 11,
                     totalCompletedDays = 4,
+                ),
+                missionsByDate = mapOf(
+                    LocalDate.of(2026, 9, 12) to listOf(
+                        MissionItem(1, "영어 회화 표현 5개 외우기", null, MissionDifficulty.MEDIUM, 100),
+                        MissionItem(2, "영어 뉴스 기사 하나 읽기", null, MissionDifficulty.HIGH, 200),
+                    ),
                 ),
             ),
             onPreviousClick = {}, onNextClick = {}, onDayClick = {},
