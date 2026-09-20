@@ -117,8 +117,6 @@ private fun NavGraphBuilder.curationGraph(navController: NavHostController) {
 
             CurationChatScreen(
                 characterId = curationData.characterId ?: 1,
-                // TODO: 종료 확인 모달을 띄우도록 교체
-                onCloseClick = { navController.popBackStack() },
                 onCompleted = { nickname, missions ->
                     curationViewModel.setChatResult(nickname, missions)
                     // TODO: chatbotSetup 호출 후 오늘의 미션 선택 화면으로 이동하도록 교체

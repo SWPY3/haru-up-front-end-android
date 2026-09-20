@@ -26,6 +26,8 @@ data class CurationChatUiState(
     val progress: Float = 1f / BASELINE_TOTAL_STEPS,
     /** 대화가 끝나고 미션이 만들어진 상태 */
     val isCompleted: Boolean = false,
+    /** 처음부터 다시 시작할지 묻는 모달 표시 여부 */
+    val showRestartConfirm: Boolean = false,
 ) {
     /**
      * 봇 메시지에 예시가 붙어 있으면 말풍선 다음에 칩 줄을 하나 더 그립니다.
@@ -93,6 +95,28 @@ class CurationChatViewModel @Inject constructor(
     fun onStart() {
         if (_uiState.value.messages.isNotEmpty()) return
         appendBot("닉네임을 입력해주세요.\n하루업에서 불리고 싶은 이름을 적어주세요.")
+    }
+
+    /** 상단 X 버튼. 화면을 벗어나지 않고 다시 시작할지 먼저 묻습니다. */
+    fun onCloseClick() {
+        _uiState.update { it.copy(showRestartConfirm = true) }
+    }
+
+    fun onContinueClick() {
+        _uiState.update { it.copy(showRestartConfirm = false) }
+    }
+
+    /** 대화를 처음 상태로 되돌립니다. 세션도 새로 시작합니다. */
+    fun onRestartClick() {
+        phase = ChatPhase.NICKNAME
+        sessionId = null
+        isLastQuestion = false
+        awaitingFinishConfirmation = false
+        collectedNickname = ""
+        completedMissions = emptyList()
+
+        _uiState.value = CurationChatUiState()
+        onStart()
     }
 
     fun onInputChange(text: String) {

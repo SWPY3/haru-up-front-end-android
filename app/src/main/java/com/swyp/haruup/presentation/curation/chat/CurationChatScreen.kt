@@ -39,6 +39,7 @@ import com.swyp.haruup.data.model.ChatbotMission
 import com.swyp.haruup.presentation.curation.character.CharacterMate
 import com.swyp.haruup.presentation.curation.chat.component.BotMessageBubble
 import com.swyp.haruup.presentation.curation.chat.component.ChatInputBar
+import com.swyp.haruup.presentation.curation.chat.component.RestartConfirmModal
 import com.swyp.haruup.presentation.curation.chat.component.SuggestionChips
 import com.swyp.haruup.presentation.curation.chat.component.UserMessageBubble
 
@@ -65,7 +66,6 @@ private const val COMPLETION_DELAY_MILLIS = 1_000L
 @Composable
 fun CurationChatScreen(
     characterId: Int,
-    onCloseClick: () -> Unit,
     onCompleted: (nickname: String, missions: List<ChatbotMission>) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: CurationChatViewModel = hiltViewModel(),
@@ -82,10 +82,17 @@ fun CurationChatScreen(
         }
     }
 
+    if (uiState.showRestartConfirm) {
+        RestartConfirmModal(
+            onRestart = viewModel::onRestartClick,
+            onContinue = viewModel::onContinueClick,
+        )
+    }
+
     CurationChatContent(
         uiState = uiState,
         characterId = characterId,
-        onCloseClick = onCloseClick,
+        onCloseClick = viewModel::onCloseClick,
         onInputChange = viewModel::onInputChange,
         onSendClick = viewModel::onSendClick,
         onSuggestionClick = viewModel::onSuggestionClick,
