@@ -6,6 +6,7 @@ import com.swyp.haruup.network.service.AuthService
 import com.swyp.haruup.network.service.CharacterService
 import com.swyp.haruup.network.service.ChartService
 import com.swyp.haruup.network.service.ChatbotService
+import com.swyp.haruup.network.service.ProfileService
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
 import dagger.Provides
@@ -29,6 +30,8 @@ object NetworkModule {
         ignoreUnknownKeys = true
         coerceInputValues = true
         encodeDefaults = true
+        // 값이 없는 필드는 보내지 않습니다. iOS 가 nil 파라미터를 딕셔너리에서 빼는 것과 같습니다.
+        explicitNulls = false
     }
 
     @Provides
@@ -77,4 +80,9 @@ object NetworkModule {
     @Singleton
     fun provideChartService(retrofit: Retrofit): ChartService =
         retrofit.create(ChartService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideProfileService(retrofit: Retrofit): ProfileService =
+        retrofit.create(ProfileService::class.java)
 }

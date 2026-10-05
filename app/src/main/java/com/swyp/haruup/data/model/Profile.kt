@@ -21,3 +21,16 @@ data class ProfileData(
     val jobDetailId: Int? = null,
     val characterId: Int,
 )
+
+/**
+ * PUT /api/member/profile/profile 요청 body
+ *
+ * 직업은 이 앱에서 고칠 수 없지만, 조회한 값을 그대로 돌려보내 서버 쪽 값이 지워지지 않게 합니다.
+ * 값이 없으면 필드 자체를 빼고 보냅니다. (Json 의 explicitNulls = false)
+ */
+@Serializable
+data class UpdateProfileRequest(
+    val nickname: String,
+    val jobId: Int? = null,
+    val jobDetailId: Int? = null,
+)
