@@ -29,5 +29,9 @@ object ApiPath {
         const val PROFILE = "api/member/profile/profile"
     }
 
-    // TODO: Mission / Member / Chart / Interests / Job / Notification / Ad 경로 이관
+    object Ranking {
+        const val POPULAR = "api/ranking/popular"
+    }
+
+    // TODO: Mission / Member / Interests / Job / Notification / Ad 경로 이관
 }
