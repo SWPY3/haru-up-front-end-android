@@ -20,6 +20,7 @@ import com.swyp.haruup.presentation.login.LoginScreen
 import com.swyp.haruup.presentation.mission.MissionDifficulty
 import com.swyp.haruup.presentation.mission.MissionItem
 import com.swyp.haruup.presentation.mission.TodayMissionScreen
+import com.swyp.haruup.presentation.mypage.notification.NotificationSettingScreen
 import com.swyp.haruup.presentation.maintab.MainTabScreen
 import com.swyp.haruup.presentation.onboarding.OnboardingScreen
 import com.swyp.haruup.presentation.splash.SplashScreen
@@ -79,13 +80,13 @@ fun HaruUpNavHost() {
             )
         }
 
-        // TODO: 프로필 수정 / 알림 설정 화면 구현 후 교체
+        // TODO: 프로필 수정 화면 구현 후 교체
         composable(Route.PROFILE_EDIT) {
             PlaceholderScreen(title = "프로필 수정")
         }
 
         composable(Route.NOTIFICATION_SETTING) {
-            PlaceholderScreen(title = "알림 설정")
+            NotificationSettingScreen(onBackClick = { navController.popBackStack() })
         }
     }
 }
