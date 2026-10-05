@@ -6,6 +6,7 @@ import com.swyp.haruup.network.service.AuthService
 import com.swyp.haruup.network.service.CharacterService
 import com.swyp.haruup.network.service.ChartService
 import com.swyp.haruup.network.service.ChatbotService
+import com.swyp.haruup.network.service.InterestService
 import com.swyp.haruup.network.service.ProfileService
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
@@ -85,4 +86,9 @@ object NetworkModule {
     @Singleton
     fun provideProfileService(retrofit: Retrofit): ProfileService =
         retrofit.create(ProfileService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideInterestService(retrofit: Retrofit): InterestService =
+        retrofit.create(InterestService::class.java)
 }

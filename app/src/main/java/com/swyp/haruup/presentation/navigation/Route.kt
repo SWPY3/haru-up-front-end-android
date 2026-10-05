@@ -20,6 +20,7 @@ object Route {
     // 마이페이지에서 들어가는 화면들
     const val PROFILE_EDIT = "profile_edit"
     const val NOTIFICATION_SETTING = "notification_setting"
+    const val INTEREST_EDIT = "interest_edit"
 
     /**
      * 큐레이션 중첩 그래프.

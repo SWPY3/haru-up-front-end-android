@@ -33,5 +33,13 @@ object ApiPath {
         const val POPULAR = "api/ranking/popular"
     }
 
-    // TODO: Mission / Member / Interests / Job / Notification / Ad 경로 이관
+    object Interest {
+        /** 관심사 / 세부 관심사 / 목표를 모두 이 경로에서 parentId 로 구분해 받습니다. */
+        const val DATA = "api/interests/data"
+
+        /** 회원이 고른 관심사. 수정할 때는 뒤에 memberInterestId 를 붙입니다. */
+        const val MEMBER = "api/interests/member"
+    }
+
+    // TODO: Mission / Member / Job / Notification / Ad 경로 이관
 }

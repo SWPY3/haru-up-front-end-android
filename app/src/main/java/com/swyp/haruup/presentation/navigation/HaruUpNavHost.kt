@@ -20,6 +20,7 @@ import com.swyp.haruup.presentation.login.LoginScreen
 import com.swyp.haruup.presentation.mission.MissionDifficulty
 import com.swyp.haruup.presentation.mission.MissionItem
 import com.swyp.haruup.presentation.mission.TodayMissionScreen
+import com.swyp.haruup.presentation.mypage.interest.InterestEditScreen
 import com.swyp.haruup.presentation.mypage.notification.NotificationSettingScreen
 import com.swyp.haruup.presentation.mypage.profile.ProfileEditScreen
 import com.swyp.haruup.presentation.maintab.MainTabScreen
@@ -87,6 +88,10 @@ fun HaruUpNavHost() {
 
         composable(Route.NOTIFICATION_SETTING) {
             NotificationSettingScreen(onBackClick = { navController.popBackStack() })
+        }
+
+        composable(Route.INTEREST_EDIT) {
+            InterestEditScreen(onBackClick = { navController.popBackStack() })
         }
     }
 }
