@@ -9,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
+import com.swyp.haruup.core.component.PlaceholderScreen
 import com.swyp.haruup.presentation.agree.AgreeScreen
 import com.swyp.haruup.presentation.curation.character.CharacterCompleteScreen
 import com.swyp.haruup.presentation.curation.character.CharacterSelectScreen
@@ -66,7 +67,25 @@ fun HaruUpNavHost() {
         curationGraph(navController)
 
         composable(Route.MAIN_TAB) {
-            MainTabScreen()
+            MainTabScreen(
+                onEditProfileClick = { navController.navigate(Route.PROFILE_EDIT) },
+                onNotificationSettingClick = { navController.navigate(Route.NOTIFICATION_SETTING) },
+                // 로그아웃·탈퇴 후에는 뒤로 가기로 돌아올 수 없어야 하므로 스택을 비웁니다.
+                onSignedOut = {
+                    navController.navigate(Route.LOGIN) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
+            )
+        }
+
+        // TODO: 프로필 수정 / 알림 설정 화면 구현 후 교체
+        composable(Route.PROFILE_EDIT) {
+            PlaceholderScreen(title = "프로필 수정")
+        }
+
+        composable(Route.NOTIFICATION_SETTING) {
+            PlaceholderScreen(title = "알림 설정")
         }
     }
 }

@@ -17,6 +17,10 @@ object Route {
     const val ONBOARDING = "onboarding"
     const val MAIN_TAB = "main_tab"
 
+    // 마이페이지에서 들어가는 화면들
+    const val PROFILE_EDIT = "profile_edit"
+    const val NOTIFICATION_SETTING = "notification_setting"
+
     /**
      * 큐레이션 중첩 그래프.
      * CurationViewModel 이 이 경로의 BackStackEntry 에 스코프되어 단계 간 데이터를 공유합니다.

@@ -1,10 +1,12 @@
 package com.swyp.haruup.network.service
 
+import com.swyp.haruup.data.model.ProfileData
 import com.swyp.haruup.data.model.SnsLoginRequest
 import com.swyp.haruup.data.model.SnsLoginResponse
 import com.swyp.haruup.network.ApiPath
 import com.swyp.haruup.network.ApiResponse
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.POST
 
 /**
@@ -21,4 +23,7 @@ interface AuthService {
 
     @POST(ApiPath.Auth.WITHDRAW)
     suspend fun withdraw(): ApiResponse<Unit>
+
+    @GET(ApiPath.Profile.PROFILE)
+    suspend fun profile(): ApiResponse<ProfileData>
 }

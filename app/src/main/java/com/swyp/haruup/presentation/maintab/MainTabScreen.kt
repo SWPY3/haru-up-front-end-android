@@ -40,7 +40,11 @@ private val tabs = listOf(
 )
 
 @Composable
-fun MainTabScreen() {
+fun MainTabScreen(
+    onEditProfileClick: () -> Unit,
+    onNotificationSettingClick: () -> Unit,
+    onSignedOut: () -> Unit,
+) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
@@ -75,7 +79,13 @@ fun MainTabScreen() {
             composable(TabRoute.HOME) { HomeScreen() }
             composable(TabRoute.HISTORY) { HistoryScreen() }
             composable(TabRoute.CHART) { ChartScreen() }
-            composable(TabRoute.MY_PAGE) { MyPageScreen() }
+            composable(TabRoute.MY_PAGE) {
+                MyPageScreen(
+                    onEditProfileClick = onEditProfileClick,
+                    onNotificationSettingClick = onNotificationSettingClick,
+                    onSignedOut = onSignedOut,
+                )
+            }
         }
     }
 }
