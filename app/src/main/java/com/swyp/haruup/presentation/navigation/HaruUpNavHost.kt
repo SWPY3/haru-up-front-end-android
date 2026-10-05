@@ -34,17 +34,18 @@ fun HaruUpNavHost() {
     NavHost(navController = navController, startDestination = Route.SPLASH) {
 
         composable(Route.SPLASH) {
+            // 스플래시로는 되돌아올 수 없어야 하므로 어디로 가든 스플래시는 걷어냅니다.
+            fun leaveSplash(route: String) {
+                navController.navigate(route) {
+                    popUpTo(Route.SPLASH) { inclusive = true }
+                }
+            }
+
             SplashScreen(
-                onLoggedIn = {
-                    navController.navigate(Route.MAIN_TAB) {
-                        popUpTo(Route.SPLASH) { inclusive = true }
-                    }
-                },
-                onLoggedOut = {
-                    navController.navigate(Route.LOGIN) {
-                        popUpTo(Route.SPLASH) { inclusive = true }
-                    }
-                },
+                onNeedLogin = { leaveSplash(Route.LOGIN) },
+                // 로그인은 되어 있지만 큐레이션을 마치지 않은 경우입니다. (iOS 와 동일)
+                onOnboardingRequired = { leaveSplash(Route.AGREE) },
+                onOnboardingCompleted = { leaveSplash(Route.MAIN_TAB) },
             )
         }
 

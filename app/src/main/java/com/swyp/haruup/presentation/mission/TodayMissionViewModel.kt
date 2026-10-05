@@ -1,7 +1,10 @@
 package com.swyp.haruup.presentation.mission
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.swyp.haruup.data.local.TokenStorage
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -43,7 +46,9 @@ data class TodayMissionUiState(
  * 챗봇 완료 직후 진입은 answer 응답의 미션을 그대로 표시하고 추천 API 를 다시 부르지 않습니다.
  */
 @HiltViewModel
-class TodayMissionViewModel @Inject constructor() : ViewModel() {
+class TodayMissionViewModel @Inject constructor(
+    private val tokenStorage: TokenStorage,
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TodayMissionUiState())
     val uiState: StateFlow<TodayMissionUiState> = _uiState.asStateFlow()
@@ -76,8 +81,20 @@ class TodayMissionViewModel @Inject constructor() : ViewModel() {
     }
 
     /**
-     * 고른 미션 ID 를 돌려줍니다.
+     * 미션 선택을 마칩니다.
+     *
+     * 이 화면이 큐레이션의 마지막이라 여기서 온보딩 완료를 기록합니다.
+     * 그래야 다음에 앱을 열었을 때 스플래시가 바로 메인 탭으로 보냅니다.
+     * (iOS 는 AppCoordinator 의 큐레이션 onFinish 에서 같은 일을 합니다)
+     *
      * TODO: MissionService 의 선택 API(api/member/mission/select) 를 호출하도록 교체
      */
-    fun selectedMissionIds(): List<Int> = _uiState.value.selectedIds.toList()
+    fun onCompleteClick(onDone: (selectedIds: List<Int>) -> Unit) {
+        val selectedIds = _uiState.value.selectedIds.toList()
+
+        viewModelScope.launch {
+            tokenStorage.setOnboardingCompleted(true)
+            onDone(selectedIds)
+        }
+    }
 }

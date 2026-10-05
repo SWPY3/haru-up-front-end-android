@@ -75,7 +75,7 @@ fun TodayMissionScreen(
         uiState = uiState,
         onFilterClick = viewModel::onFilterClick,
         onMissionClick = viewModel::onMissionClick,
-        onCompleteClick = { onCompleted(viewModel.selectedMissionIds()) },
+        onCompleteClick = { viewModel.onCompleteClick(onCompleted) },
         modifier = modifier,
     )
 }
