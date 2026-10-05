@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -124,10 +126,18 @@ private fun ChartContent(
 
         Spacer(Modifier.height(FILTER_TO_CONTENT))
 
-        if (uiState.hasData) {
-            ChartRankingCard(items = uiState.items)
-        } else {
-            ChartEmptyCard()
+        // 제목과 검색조건 줄은 고정하고 목록만 남은 높이 안에서 스크롤합니다.
+        // 화면이 짧으면 5위가 잘리기 때문입니다. (iOS 의 tableView 와 같은 동작)
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState()),
+        ) {
+            if (uiState.hasData) {
+                ChartRankingCard(items = uiState.items)
+            } else {
+                ChartEmptyCard()
+            }
         }
     }
 

@@ -47,6 +47,7 @@ private val TAG_RADIUS = 10.dp
 private val TAG_H_PADDING = 16.dp
 private val TAG_V_PADDING = 8.dp
 private val CONTENT_BOTTOM = 20.dp
+private val CONTENT_TO_FOOTER = 10.dp
 private val FOOTER_SPACING = 8.dp
 private val FOOTER_HEIGHT = 52.dp
 private val FOOTER_BOTTOM = 10.dp
@@ -132,7 +133,7 @@ fun ChartFilterSheet(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = H_MARGIN)
-                .padding(bottom = FOOTER_BOTTOM)
+                .padding(top = CONTENT_TO_FOOTER, bottom = FOOTER_BOTTOM)
                 .height(FOOTER_HEIGHT),
             horizontalArrangement = Arrangement.spacedBy(FOOTER_SPACING),
         ) {
