@@ -14,22 +14,31 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import com.swyp.haruup.R
 import com.swyp.haruup.core.designsystem.HaruUpColor
 import com.swyp.haruup.core.designsystem.HaruUpTheme
@@ -81,7 +90,11 @@ fun <T : DropdownItem> HaruUpDropdown(
 
         Spacer(Modifier.height(8.dp))
 
-        Box {
+        // 펼친 목록은 아래 칸 위에 떠야 하므로 Popup 으로 띄웁니다.
+        // 같은 Box 안에 두면 Box 가 목록 높이만큼 커져서 아래 내용을 밀어냅니다.
+        var fieldWidth by remember { mutableIntStateOf(0) }
+
+        Box(modifier = Modifier.onSizeChanged { fieldWidth = it.width }) {
             DropdownField(
                 text = selectedName ?: placeholder,
                 isSelected = selectedName != null,
@@ -91,14 +104,24 @@ fun <T : DropdownItem> HaruUpDropdown(
             )
 
             if (isExpanded && items.isNotEmpty()) {
-                DropdownList(
-                    items = items,
-                    selectedId = selectedId,
-                    onSelect = onSelect,
-                    modifier = Modifier
-                        .padding(top = FIELD_HEIGHT + LIST_TOP_GAP)
-                        .fillMaxWidth(),
-                )
+                val density = LocalDensity.current
+
+                Popup(
+                    alignment = Alignment.TopStart,
+                    offset = with(density) {
+                        IntOffset(x = 0, y = (FIELD_HEIGHT + LIST_TOP_GAP).roundToPx())
+                    },
+                    onDismissRequest = onToggle,
+                    properties = PopupProperties(focusable = true),
+                ) {
+                    DropdownList(
+                        items = items,
+                        selectedId = selectedId,
+                        onSelect = onSelect,
+                        // 떠 있는 목록이라 폭을 직접 맞춰 줍니다.
+                        modifier = Modifier.width(with(density) { fieldWidth.toDp() }),
+                    )
+                }
             }
         }
     }

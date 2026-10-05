@@ -22,7 +22,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.swyp.haruup.core.component.HaruUpConfirmDialog
@@ -42,14 +41,6 @@ private val COMPLETE_HEIGHT = 56.dp
 private val COMPLETE_RADIUS = 16.dp
 private val COMPLETE_BOTTOM = 60.dp
 private val TOAST_TO_COMPLETE = 20.dp
-
-/**
- * 펼친 드롭다운이 아래 칸 위에 겹쳐 떠야 해서 위 칸일수록 z 를 높입니다.
- * 값이 클수록 앞에 그려집니다.
- */
-private const val Z_INTEREST = 3f
-private const val Z_DETAIL = 2f
-private const val Z_GOAL = 1f
 
 /**
  * 마이페이지 > 관심사 수정. iOS 의 InterestEditViewController 에 대응합니다.
@@ -156,9 +147,7 @@ private fun InterestEditContent(
             isExpanded = uiState.expanded == InterestDropdown.INTEREST,
             onToggle = { onDropdownToggle(InterestDropdown.INTEREST) },
             onSelect = onInterestSelect,
-            modifier = Modifier
-                .zIndex(Z_INTEREST)
-                .padding(horizontal = H_MARGIN),
+            modifier = Modifier.padding(horizontal = H_MARGIN),
         )
 
         Spacer(Modifier.height(BETWEEN_FIELDS))
@@ -173,9 +162,7 @@ private fun InterestEditContent(
             onToggle = { onDropdownToggle(InterestDropdown.DETAIL) },
             onSelect = onDetailSelect,
             isEnabled = uiState.selectedInterest != null,
-            modifier = Modifier
-                .zIndex(Z_DETAIL)
-                .padding(horizontal = H_MARGIN),
+            modifier = Modifier.padding(horizontal = H_MARGIN),
         )
 
         Spacer(Modifier.height(BETWEEN_FIELDS))
@@ -190,9 +177,7 @@ private fun InterestEditContent(
             onToggle = { onDropdownToggle(InterestDropdown.GOAL) },
             onSelect = onGoalSelect,
             isEnabled = uiState.isGoalEnabled,
-            modifier = Modifier
-                .zIndex(Z_GOAL)
-                .padding(horizontal = H_MARGIN),
+            modifier = Modifier.padding(horizontal = H_MARGIN),
         )
 
         Spacer(Modifier.weight(1f))

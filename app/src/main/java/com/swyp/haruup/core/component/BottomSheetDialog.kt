@@ -36,7 +36,12 @@ fun BottomSheetDialog(
 ) {
     Dialog(
         onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false),
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            // 창이 키보드만큼 줄어들지 않게 해야 Compose 가 키보드 높이를 제대로 알려 줍니다.
+            // 이걸 켜 두면 창도 줄고 imePadding 도 더해져 시트가 두 번 밀립니다.
+            decorFitsSystemWindows = false,
+        ),
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
 
