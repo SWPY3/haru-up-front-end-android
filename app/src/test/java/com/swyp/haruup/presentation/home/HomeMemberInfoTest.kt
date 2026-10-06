@@ -4,6 +4,7 @@ import com.swyp.haruup.data.model.HomeMemberInfoData
 import com.swyp.haruup.util.FakeMemberService
 import com.swyp.haruup.util.FakeMissionService
 import com.swyp.haruup.util.MainDispatcherRule
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -28,8 +29,15 @@ class HomeMemberInfoTest {
         interests = listOf(listOf("외국어 공부", "영어", "회화 공부")),
     )
 
-    private fun viewModel(memberService: FakeMemberService) =
-        HomeViewModel(FakeMissionService(), memberService)
+    /**
+     * 회원 정보는 화면이 보일 때 받아오므로 ViewModel 을 만든 것만으로는 조회되지 않습니다.
+     * 화면이 하는 일을 대신해 한 번 불러 줍니다.
+     */
+    private fun TestScope.viewModel(memberService: FakeMemberService): HomeViewModel =
+        HomeViewModel(FakeMissionService(), memberService).also {
+            it.loadMemberInfo()
+            advanceUntilIdle()
+        }
 
     @Test
     fun `회원 정보를 화면 모델로 옮긴다`() = runTest {
