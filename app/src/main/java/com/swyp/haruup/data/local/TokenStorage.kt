@@ -23,6 +23,10 @@ class TokenStorage @Inject constructor(
     private val accessTokenKey = stringPreferencesKey("access_token")
     private val refreshTokenKey = stringPreferencesKey("refresh_token")
     private val onboardingCompletedKey = booleanPreferencesKey("onboarding_completed")
+    private val memberIdKey = stringPreferencesKey("member_id")
+
+    /** 온보딩을 마친 회원이 누구였는지. 계정이 바뀌면 온보딩을 다시 시켜야 해서 함께 둡니다. */
+    private val onboardingMemberIdKey = stringPreferencesKey("onboarding_member_id")
 
     suspend fun getAccessToken(): String? =
         context.dataStore.data.first()[accessTokenKey]
@@ -34,6 +38,27 @@ class TokenStorage @Inject constructor(
         context.dataStore.edit { prefs ->
             prefs[accessTokenKey] = accessToken
             prefs[refreshTokenKey] = refreshToken
+        }
+    }
+
+    suspend fun getMemberId(): String? = context.dataStore.data.first()[memberIdKey]
+
+    suspend fun saveMemberId(memberId: String) {
+        context.dataStore.edit { it[memberIdKey] = memberId }
+    }
+
+    /**
+     * 지난번과 다른 계정으로 로그인했다면 온보딩 기록을 지웁니다.
+     *
+     * 지우지 않으면 새 계정이 큐레이션을 건너뛰고 빈 홈으로 들어갑니다. (iOS 와 같은 처리)
+     */
+    suspend fun clearOnboardingIfDifferentUser(memberId: String) {
+        val previous = context.dataStore.data.first()[onboardingMemberIdKey] ?: return
+        if (previous == memberId) return
+
+        context.dataStore.edit { prefs ->
+            prefs.remove(onboardingCompletedKey)
+            prefs.remove(onboardingMemberIdKey)
         }
     }
 
@@ -51,7 +76,13 @@ class TokenStorage @Inject constructor(
         context.dataStore.data.first()[onboardingCompletedKey] == true
 
     suspend fun setOnboardingCompleted(completed: Boolean) {
-        context.dataStore.edit { it[onboardingCompletedKey] = completed }
+        context.dataStore.edit { prefs ->
+            prefs[onboardingCompletedKey] = completed
+
+            // 누가 마쳤는지 함께 적어 둡니다. 다음 로그인 때 계정이 바뀌었는지 보려면 필요합니다.
+            val memberId = prefs[memberIdKey]
+            if (completed && memberId != null) prefs[onboardingMemberIdKey] = memberId
+        }
     }
 
     suspend fun clear() {

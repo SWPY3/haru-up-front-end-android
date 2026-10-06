@@ -50,10 +50,13 @@ fun HaruUpNavHost() {
         }
 
         composable(Route.LOGIN) {
-            // TODO: SDK 연동 후 실제 로그인 결과에 따라 이동하도록 교체
             LoginScreen(
-                onKakaoLoginClick = { navController.navigate(Route.AGREE) },
-                onNaverLoginClick = { navController.navigate(Route.AGREE) },
+                onOnboardingRequired = { navController.navigate(Route.AGREE) },
+                onLoggedIn = {
+                    navController.navigate(Route.MAIN_TAB) {
+                        popUpTo(Route.LOGIN) { inclusive = true }
+                    }
+                },
             )
         }
 

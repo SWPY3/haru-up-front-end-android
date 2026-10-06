@@ -1,3 +1,16 @@
+import java.util.Properties
+
+/**
+ * SNS 앱 키는 저장소에 올리지 않습니다. local.properties 에서 읽고, 없으면 빈 값으로 둡니다.
+ * 빈 값이면 앱은 그대로 돌아가고 해당 로그인 버튼만 "준비되지 않았어요" 로 안내합니다.
+ */
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
+}
+
+fun secret(name: String): String = localProperties.getProperty(name) ?: ""
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -21,6 +34,13 @@ android {
         versionName = "1.0.11"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "KAKAO_NATIVE_APP_KEY", "\"${secret("KAKAO_NATIVE_APP_KEY")}\"")
+        buildConfigField("String", "NAVER_CLIENT_ID", "\"${secret("NAVER_CLIENT_ID")}\"")
+        buildConfigField("String", "NAVER_CLIENT_SECRET", "\"${secret("NAVER_CLIENT_SECRET")}\"")
+
+        // 카카오톡으로 로그인한 뒤 앱으로 돌아올 때 쓰는 주소입니다. Manifest 의 intent-filter 에 들어갑니다.
+        manifestPlaceholders["kakaoRedirectScheme"] = "kakao${secret("KAKAO_NATIVE_APP_KEY")}"
     }
 
     buildTypes {
@@ -98,6 +118,9 @@ dependencies {
 
     // 약관 원문을 Custom Tabs 로 띄운다. iOS 의 인앱 웹뷰에 대응한다.
     implementation(libs.androidx.browser)
+
+    implementation(libs.kakao.user)
+    implementation(libs.naver.oauth)
 
     // Test
     testImplementation(libs.junit)

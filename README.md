@@ -93,16 +93,29 @@ app/src/main/java/com/swyp/haruup/
 
 ## ✅ 다음 단계
 
-**1. 외부 SDK 연동** — `gradle/libs.versions.toml` 하단에 주석으로 준비해 뒀습니다.
+**1. 소셜 로그인 앱 키 넣기** — 코드는 다 붙어 있고 키만 넣으면 됩니다.
 
-| SDK | 추가로 필요한 작업 |
-|-----|------------------|
-| 카카오 로그인 | 앱 키 발급, `settings.gradle.kts` 에 카카오 저장소 추가, Manifest 에 `AuthCodeHandlerActivity` 등록 |
-| 네이버 로그인 | 클라이언트 ID/Secret 발급, `NidOAuth.initialize()` 호출 |
+`local.properties` 에 아래 세 줄을 추가하세요. 이 파일은 gitignore 처리돼 있어 커밋되지 않습니다.
+
+```properties
+KAKAO_NATIVE_APP_KEY=발급받은_네이티브_앱_키
+NAVER_CLIENT_ID=발급받은_클라이언트_ID
+NAVER_CLIENT_SECRET=발급받은_클라이언트_시크릿
+```
+
+넣고 다시 빌드하면 해당 로그인이 바로 동작합니다. 그 외에 손댈 곳은 없습니다.
+카카오 저장소, `AuthCodeHandlerActivity`, SDK 초기화, 리다이렉트 scheme 은 모두 설정돼 있습니다.
+
+키가 없으면 앱은 그대로 돌아가고, 그 버튼만 "아직 준비되지 않았어요" 로 안내합니다.
+빈 키로 SDK 를 초기화하면 앱 전체가 뜨지 않아 초기화 자체를 건너뜁니다.
+
+**아직 남은 SDK**
+
+| SDK | 필요한 작업 |
+|-----|------------|
 | Firebase FCM | `google-services.json` 배치(gitignore 처리됨), 플러그인 추가 |
 | Amplitude | API 키 발급 |
-
-앱 키는 `local.properties` 또는 `secrets.properties` 에 두고 `BuildConfig` 로 주입합니다. 두 파일 모두 gitignore 처리돼 있습니다.
+| AdMob | 앱 ID 발급 (마이페이지 배너) |
 
 **2. 디자인 리소스 이관** — ✅ 완료
 

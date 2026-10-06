@@ -13,13 +13,19 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.swyp.haruup.R
+import com.swyp.haruup.core.component.HaruUpToast
+import com.swyp.haruup.data.model.SocialLoginProvider
 import com.swyp.haruup.core.designsystem.HaruUpColor
 import com.swyp.haruup.core.designsystem.HaruUpTheme
 import com.swyp.haruup.presentation.login.component.SocialLoginButton
@@ -28,6 +34,7 @@ private val IMAGE_TO_BUTTON_SPACING = 36.dp
 private val HORIZONTAL_MARGIN = 20.dp
 private val BUTTON_SPACING = 16.dp
 private val BOTTOM_MIN_MARGIN = 96.dp
+private val TOAST_BOTTOM_MARGIN = 24.dp
 
 /**
  * iOS 의 LoginViewController 에 대응합니다.
@@ -38,10 +45,41 @@ private val BOTTOM_MIN_MARGIN = 96.dp
  */
 @Composable
 fun LoginScreen(
+    onOnboardingRequired: () -> Unit,
+    onLoggedIn: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: LoginViewModel = hiltViewModel(),
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    val login = { provider: SocialLoginProvider ->
+        viewModel.onLoginClick(context, provider) { destination ->
+            when (destination) {
+                LoginDestination.ONBOARDING -> onOnboardingRequired()
+                LoginDestination.MAIN_TAB -> onLoggedIn()
+            }
+        }
+    }
+
+    LoginContent(
+        onKakaoLoginClick = { login(SocialLoginProvider.KAKAO) },
+        onNaverLoginClick = { login(SocialLoginProvider.NAVER) },
+        errorMessage = uiState.errorMessage,
+        onErrorShown = viewModel::onErrorShown,
+        isLoading = uiState.isLoading,
+        modifier = modifier,
+    )
+}
+
+@Composable
+private fun LoginContent(
     onKakaoLoginClick: () -> Unit,
     onNaverLoginClick: () -> Unit,
-    modifier: Modifier = Modifier,
+    errorMessage: String? = null,
+    onErrorShown: () -> Unit = {},
     isLoading: Boolean = false,
+    modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier.fillMaxSize()) {
 
@@ -96,6 +134,17 @@ fun LoginScreen(
                 color = HaruUpColor.PrimaryBlue700,
             )
         }
+
+        HaruUpToast(
+            message = errorMessage,
+            onDismiss = onErrorShown,
+            // 완료가 아니라 안내라서 체크 아이콘을 빼고 보여 줍니다.
+            showCheckIcon = false,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(horizontal = HORIZONTAL_MARGIN, vertical = TOAST_BOTTOM_MARGIN),
+        )
     }
 }
 
@@ -103,7 +152,7 @@ fun LoginScreen(
 @Composable
 private fun LoginScreenPreview() {
     HaruUpTheme {
-        LoginScreen(onKakaoLoginClick = {}, onNaverLoginClick = {})
+        LoginContent(onKakaoLoginClick = {}, onNaverLoginClick = {})
     }
 }
 
@@ -111,6 +160,6 @@ private fun LoginScreenPreview() {
 @Composable
 private fun LoginScreenLoadingPreview() {
     HaruUpTheme {
-        LoginScreen(onKakaoLoginClick = {}, onNaverLoginClick = {}, isLoading = true)
+        LoginContent(onKakaoLoginClick = {}, onNaverLoginClick = {}, isLoading = true)
     }
 }

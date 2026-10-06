@@ -17,6 +17,8 @@ datastore = "1.1.4"
 coroutines = "1.10.1"
 lottie = "6.6.6"
 browser = "1.8.0"
+kakaoSdk = "2.25.1"
+naverOauth = "5.12.0"
 junit = "4.13.2"
 androidxJunit = "1.2.1"
 espresso = "3.6.1"
@@ -59,10 +61,10 @@ androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-co
 androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 
+kakao-user = { group = "com.kakao.sdk", name = "v2-user", version.ref = "kakaoSdk" }
+naver-oauth = { group = "com.navercorp.nid", name = "oauth", version.ref = "naverOauth" }
+
 # 아래는 아직 사용하지 않는 항목입니다. 해당 기능 구현 시 app/build.gradle.kts 에 추가하세요.
-# 앱 키 발급과 Manifest 설정이 함께 필요합니다. README 의 "다음 단계" 참고.
-# kakao-user     = { group = "com.kakao.sdk",     name = "v2-user",   version = "2.21.1" }
-# naver-oauth    = { group = "com.navercorp.nid", name = "oauth",     version = "5.12.0" }
 # firebase-bom   = { group = "com.google.firebase", name = "firebase-bom", version = "33.10.0" }
 # amplitude      = { group = "com.amplitude",     name = "analytics-android", version = "1.20.2" }
 # room-runtime   = { group = "androidx.room",     name = "room-runtime", version = "2.6.1" }

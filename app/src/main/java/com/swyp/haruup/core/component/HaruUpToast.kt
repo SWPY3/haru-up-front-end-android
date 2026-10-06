@@ -52,12 +52,15 @@ private const val HOLD_MILLIS = 2000L
  * iOS 의 ProfileEditViewController.showToast 에 대응합니다.
  *
  * [message] 가 null 이 아니면 떠올랐다가 잠시 뒤 사라지고, 사라질 때 [onDismiss] 를 부릅니다.
+ *
+ * 체크 아이콘은 무언가를 마쳤다는 뜻이라 안내나 오류에는 [showCheckIcon] 을 꺼서 씁니다.
  */
 @Composable
 fun HaruUpToast(
     message: String?,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
+    showCheckIcon: Boolean = true,
 ) {
     // message 가 null 이 되어도 사라지는 동안에는 마지막 문구를 그대로 보여 줘야 해서 붙잡아 둡니다.
     var displayed by remember { mutableStateOf("") }
@@ -87,13 +90,15 @@ fun HaruUpToast(
                 .padding(start = ICON_LEADING, end = TEXT_TRAILING),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Image(
-                painter = painterResource(R.drawable.ic_small_check),
-                contentDescription = null,
-                modifier = Modifier.size(ICON_SIZE),
-            )
+            if (showCheckIcon) {
+                Image(
+                    painter = painterResource(R.drawable.ic_small_check),
+                    contentDescription = null,
+                    modifier = Modifier.size(ICON_SIZE),
+                )
 
-            Spacer(Modifier.width(ICON_TO_TEXT))
+                Spacer(Modifier.width(ICON_TO_TEXT))
+            }
 
             Text(
                 text = displayed,
