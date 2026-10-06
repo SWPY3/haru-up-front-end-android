@@ -82,13 +82,14 @@ class HomeViewModel @Inject constructor(
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     init {
-        loadMemberInfo()
         loadTodayMissions()
         loadChallenge()
     }
 
     /**
      * 홈 상단의 캐릭터와 경험치입니다.
+     *
+     * 화면이 보일 때마다 호출되므로 여기서는 init 에서 부르지 않습니다. 두 번 받아오게 됩니다.
      *
      * 못 받아오면 지금 보여 주고 있는 값을 그대로 둡니다.
      * 통신이 한 번 실패했다고 레벨과 닉네임이 사라지면 더 이상해 보이기 때문입니다.
