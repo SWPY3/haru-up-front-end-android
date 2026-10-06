@@ -33,6 +33,11 @@ object ApiPath {
         const val POPULAR = "api/ranking/popular"
     }
 
+    object Member {
+        /** 홈 상단의 캐릭터 / 레벨 / 경험치. GET 이 아니라 POST 입니다. */
+        const val HOME_INFO = "api/member/account/home/memberInfo"
+    }
+
     object Mission {
         /** 오늘 고를 수 있는 미션 추천 */
         const val RECOMMEND = "api/member/mission/recommend"
@@ -67,5 +72,5 @@ object ApiPath {
         const val MEMBER = "api/interests/member"
     }
 
-    // TODO: Member / Job / Notification / Ad 경로 이관
+    // TODO: Job / Notification / Ad 경로 이관
 }

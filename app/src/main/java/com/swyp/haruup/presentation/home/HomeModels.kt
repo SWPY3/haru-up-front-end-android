@@ -66,3 +66,18 @@ data class DailyMission(
     val dayLabel: String,
     val status: MissionChallengeStatus,
 )
+
+/**
+ * 서버 응답을 홈 상단 모델로 바꿉니다.
+ *
+ * 관심사는 여러 개가 올 수 있지만 말풍선에는 첫 관심사의 가장 큰 분류만 씁니다. (iOS 와 동일)
+ */
+fun com.swyp.haruup.data.model.HomeMemberInfoData.toHomeMemberInfo(): HomeMemberInfo =
+    HomeMemberInfo(
+        characterId = characterId,
+        level = levelNumber,
+        nickname = nickname,
+        currentExp = currentExp,
+        maxExp = maxExp,
+        interest = interests.firstOrNull()?.firstOrNull().orEmpty(),
+    )

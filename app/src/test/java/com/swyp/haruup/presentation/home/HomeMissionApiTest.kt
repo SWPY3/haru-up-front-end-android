@@ -2,6 +2,7 @@ package com.swyp.haruup.presentation.home
 
 import com.swyp.haruup.data.model.MissionListItem
 import com.swyp.haruup.data.model.MissionStatus
+import com.swyp.haruup.util.FakeMemberService
 import com.swyp.haruup.util.FakeMissionService
 import com.swyp.haruup.util.MainDispatcherRule
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -39,7 +40,7 @@ class HomeMissionApiTest {
     fun `오늘의 미션은 완료한 것까지 함께 받아온다`() = runTest {
         val completed = mission.copy(id = 2, missionStatus = MissionStatus.COMPLETED)
         val service = service(mission, completed)
-        val vm = HomeViewModel(service)
+        val vm = HomeViewModel(service, FakeMemberService())
         advanceUntilIdle()
 
         assertEquals(2, vm.uiState.value.todayMissions.size)
@@ -53,7 +54,7 @@ class HomeMissionApiTest {
     @Test
     fun `완료하면 서버에 COMPLETED 로 알린다`() = runTest {
         val service = service(mission)
-        val vm = HomeViewModel(service)
+        val vm = HomeViewModel(service, FakeMemberService())
         advanceUntilIdle()
 
         vm.onMissionSettingClick(vm.uiState.value.todayMissions.first())
@@ -71,7 +72,7 @@ class HomeMissionApiTest {
     @Test
     fun `완료가 실패하면 화면을 바꾸지 않는다`() = runTest {
         val service = service(mission)
-        val vm = HomeViewModel(service)
+        val vm = HomeViewModel(service, FakeMemberService())
         advanceUntilIdle()
 
         // 목록은 받아 둔 뒤부터 실패하게 만듭니다.
@@ -88,7 +89,7 @@ class HomeMissionApiTest {
     @Test
     fun `삭제하면 서버에 INACTIVE 로 알리고 목록에서 뺀다`() = runTest {
         val service = service(mission)
-        val vm = HomeViewModel(service)
+        val vm = HomeViewModel(service, FakeMemberService())
         advanceUntilIdle()
 
         vm.onMissionSettingClick(vm.uiState.value.todayMissions.first())
@@ -103,7 +104,7 @@ class HomeMissionApiTest {
     @Test
     fun `삭제가 실패하면 목록에 그대로 남는다`() = runTest {
         val service = service(mission)
-        val vm = HomeViewModel(service)
+        val vm = HomeViewModel(service, FakeMemberService())
         advanceUntilIdle()
 
         service.shouldFail = true

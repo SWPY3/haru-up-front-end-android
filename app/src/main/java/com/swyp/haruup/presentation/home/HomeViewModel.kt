@@ -6,6 +6,7 @@ import com.swyp.haruup.core.util.MissionDates
 import com.swyp.haruup.data.model.MemberMissionStatus
 import com.swyp.haruup.data.model.MissionStatus
 import com.swyp.haruup.data.model.MissionStatusRequest
+import com.swyp.haruup.network.service.MemberService
 import com.swyp.haruup.network.service.MissionService
 import com.swyp.haruup.presentation.mission.MissionItem
 import com.swyp.haruup.presentation.mission.toMissionItem
@@ -74,14 +75,35 @@ data class HomeUiState(
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val missionService: MissionService,
+    private val memberService: MemberService,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     init {
+        loadMemberInfo()
         loadTodayMissions()
         loadChallenge()
+    }
+
+    /**
+     * 홈 상단의 캐릭터와 경험치입니다.
+     *
+     * 못 받아오면 지금 보여 주고 있는 값을 그대로 둡니다.
+     * 통신이 한 번 실패했다고 레벨과 닉네임이 사라지면 더 이상해 보이기 때문입니다.
+     */
+    fun loadMemberInfo() {
+        viewModelScope.launch {
+            val data = runCatching { memberService.homeMemberInfo() }
+                .getOrNull()
+                ?.takeIf { it.success }
+                ?.data
+                ?.firstOrNull()
+                ?: return@launch
+
+            _uiState.update { it.copy(memberInfo = data.toHomeMemberInfo()) }
+        }
     }
 
     /**
@@ -144,11 +166,6 @@ class HomeViewModel @Inject constructor(
 
     fun onInfoClick() {
         _uiState.update { it.copy(isTooltipVisible = !it.isTooltipVisible) }
-    }
-
-    /** TODO: 프로필 조회 API 로 교체 */
-    fun setMemberInfo(memberInfo: HomeMemberInfo) {
-        _uiState.update { it.copy(memberInfo = memberInfo) }
     }
 
     // MARK: - 미션 상세 시트

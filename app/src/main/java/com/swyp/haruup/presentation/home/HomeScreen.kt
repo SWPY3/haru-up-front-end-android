@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.swyp.haruup.core.designsystem.HaruUpColor
 import com.swyp.haruup.core.designsystem.HaruUpTheme
@@ -35,8 +36,6 @@ private val EMPTY_TO_ADD_SPACING = 16.dp
 
 /**
  * 메인 탭의 홈. iOS 의 HomeViewController 에 대응합니다.
- *
- * 미션 상세·연속 달성 바텀시트는 이어서 붙입니다.
  */
 @Composable
 fun HomeScreen(
@@ -44,6 +43,13 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // 프로필 수정에서 닉네임을 바꾸고 돌아오면 바로 반영되도록 다시 받아옵니다.
+    // (iOS 는 changedProfile 알림으로 같은 일을 합니다)
+    LifecycleResumeEffect(viewModel) {
+        viewModel.loadMemberInfo()
+        onPauseOrDispose { }
+    }
 
     HomeContent(
         uiState = uiState,
