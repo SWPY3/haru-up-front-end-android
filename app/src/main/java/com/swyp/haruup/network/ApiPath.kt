@@ -33,6 +33,32 @@ object ApiPath {
         const val POPULAR = "api/ranking/popular"
     }
 
+    object Mission {
+        /** 오늘 고를 수 있는 미션 추천 */
+        const val RECOMMEND = "api/member/mission/recommend"
+
+        /** 다른 미션으로 다시 추천 */
+        const val RETRY = "api/member/mission/retry"
+
+        /** 고른 미션 확정 */
+        const val SELECT = "api/member/mission/select"
+
+        /** 날짜별 미션 목록 */
+        const val LIST = "api/member/mission"
+
+        /** 미션 완료 / 삭제 */
+        const val STATUS = "api/member/mission/status"
+
+        /** 날짜별 달성 여부 (연속 달성일 계산용) */
+        const val COMPLETION_STATUS = "api/member/mission/completion-status"
+
+        /**
+         * 월별 집계. 뒤에 /{yyyy-MM} 을 붙이면 그 달의 일별 현황,
+         * 기간을 쿼리로 주면 월별 달성일수가 나옵니다. (iOS 의 history / growth)
+         */
+        const val MONTHLY = "api/member/mission/continue/mission/month"
+    }
+
     object Interest {
         /** 관심사 / 세부 관심사 / 목표를 모두 이 경로에서 parentId 로 구분해 받습니다. */
         const val DATA = "api/interests/data"
@@ -41,5 +67,5 @@ object ApiPath {
         const val MEMBER = "api/interests/member"
     }
 
-    // TODO: Mission / Member / Job / Notification / Ad 경로 이관
+    // TODO: Member / Job / Notification / Ad 경로 이관
 }

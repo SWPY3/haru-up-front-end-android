@@ -62,3 +62,15 @@ data class MissionItem(
     val difficulty: MissionDifficulty,
     val expEarned: Int,
 )
+
+/**
+ * 서버 응답을 화면에 그릴 모양으로 바꿉니다.
+ * 완료 여부는 목록 쪽에서 따로 모아 두므로 여기서는 다루지 않습니다.
+ */
+fun com.swyp.haruup.data.model.MissionListItem.toMissionItem(): MissionItem = MissionItem(
+    id = id,
+    content = missionContent,
+    description = missionDescription,
+    difficulty = MissionDifficulty.from(difficulty),
+    expEarned = expEarned,
+)

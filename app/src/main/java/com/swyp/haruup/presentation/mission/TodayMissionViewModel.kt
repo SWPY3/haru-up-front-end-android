@@ -3,6 +3,8 @@ package com.swyp.haruup.presentation.mission
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.swyp.haruup.data.local.TokenStorage
+import com.swyp.haruup.data.model.SelectMissionRequest
+import com.swyp.haruup.network.service.MissionService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,6 +49,7 @@ data class TodayMissionUiState(
  */
 @HiltViewModel
 class TodayMissionViewModel @Inject constructor(
+    private val missionService: MissionService,
     private val tokenStorage: TokenStorage,
 ) : ViewModel() {
 
@@ -83,17 +86,24 @@ class TodayMissionViewModel @Inject constructor(
     /**
      * 미션 선택을 마칩니다.
      *
-     * 이 화면이 큐레이션의 마지막이라 여기서 온보딩 완료를 기록합니다.
+     * 고른 미션을 서버에 확정하고, 이 화면이 큐레이션의 마지막이라 온보딩 완료도 함께 기록합니다.
      * 그래야 다음에 앱을 열었을 때 스플래시가 바로 메인 탭으로 보냅니다.
      * (iOS 는 AppCoordinator 의 큐레이션 onFinish 에서 같은 일을 합니다)
      *
-     * TODO: MissionService 의 선택 API(api/member/mission/select) 를 호출하도록 교체
+     * 확정에 실패해도 화면은 넘깁니다. 여기서 막으면 큐레이션을 처음부터 다시 해야 하는데,
+     * 홈에서 미션을 다시 고를 수 있어 되돌리는 비용이 훨씬 작기 때문입니다.
      */
     fun onCompleteClick(onDone: (selectedIds: List<Int>) -> Unit) {
         val selectedIds = _uiState.value.selectedIds.toList()
+        if (_uiState.value.isLoading) return
 
         viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+
+            runCatching { missionService.selectMissions(SelectMissionRequest(selectedIds)) }
+
             tokenStorage.setOnboardingCompleted(true)
+            _uiState.update { it.copy(isLoading = false) }
             onDone(selectedIds)
         }
     }

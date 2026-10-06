@@ -1,12 +1,21 @@
 package com.swyp.haruup.presentation.home
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.swyp.haruup.core.util.MissionDates
+import com.swyp.haruup.data.model.MemberMissionStatus
+import com.swyp.haruup.data.model.MissionStatus
+import com.swyp.haruup.data.model.MissionStatusRequest
+import com.swyp.haruup.network.service.MissionService
 import com.swyp.haruup.presentation.mission.MissionItem
+import com.swyp.haruup.presentation.mission.toMissionItem
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import java.time.LocalDate
 import java.time.LocalTime
 import javax.inject.Inject
 
@@ -63,10 +72,70 @@ data class HomeUiState(
  * 오늘의 미션 목록과 바텀시트는 이어서 붙입니다.
  */
 @HiltViewModel
-class HomeViewModel @Inject constructor() : ViewModel() {
+class HomeViewModel @Inject constructor(
+    private val missionService: MissionService,
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+
+    init {
+        loadTodayMissions()
+        loadChallenge()
+    }
+
+    /**
+     * 오늘 고른 미션을 받아옵니다.
+     *
+     * 완료한 미션도 함께 받아 목록에 남겨 둡니다. 지운 미션만 빠집니다. (iOS 와 같은 조회 조건)
+     */
+    private fun loadTodayMissions() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+
+            val missions = runCatching {
+                missionService.missions(
+                    missionStatus = "${MissionStatus.COMPLETED},${MissionStatus.ACTIVE}",
+                    targetDate = MissionDates.format(LocalDate.now()),
+                )
+            }.getOrNull()
+                ?.takeIf { it.success }
+                ?.data
+
+            if (missions == null) {
+                _uiState.update { it.copy(isLoading = false) }
+                return@launch
+            }
+
+            _uiState.update { state ->
+                state.copy(
+                    todayMissions = missions.map { it.toMissionItem() },
+                    completedMissionIds = missions
+                        .filter { it.missionStatus == MissionStatus.COMPLETED }
+                        .map { it.id }
+                        .toSet(),
+                    isLoading = false,
+                )
+            }
+        }
+    }
+
+    /** 연속 달성일과 시트에 그릴 7칸을 함께 만듭니다. */
+    private fun loadChallenge() {
+        viewModelScope.launch {
+            val (startDate, endDate) = MissionDates.challengeRange()
+
+            val days = runCatching { missionService.completionStatus(startDate, endDate) }
+                .getOrNull()
+                ?.takeIf { it.success }
+                ?.data
+                ?: return@launch
+
+            _uiState.update {
+                it.copy(challengeDay = challengeStreak(days), dailyMissions = challengeDays(days))
+            }
+        }
+    }
 
     /** 캐릭터나 말풍선을 누르면 다음 문구로 넘깁니다. */
     fun onBubbleClick() {
@@ -82,11 +151,6 @@ class HomeViewModel @Inject constructor() : ViewModel() {
         _uiState.update { it.copy(memberInfo = memberInfo) }
     }
 
-    /** TODO: 오늘의 미션 조회 API 로 교체 */
-    fun setTodayMissions(missions: List<MissionItem>) {
-        _uiState.update { it.copy(todayMissions = missions) }
-    }
-
     // MARK: - 미션 상세 시트
 
     fun onMissionSettingClick(mission: MissionItem) {
@@ -99,17 +163,27 @@ class HomeViewModel @Inject constructor() : ViewModel() {
 
     /**
      * 미션을 완료 처리합니다.
-     * TODO: 미션 상태 변경 API(COMPLETED) 를 호출하도록 교체
+     *
+     * 서버에 먼저 알리고 성공했을 때만 화면을 바꿉니다.
+     * 실패했는데 완료로 보여 주면 다음에 들어왔을 때 되돌아가 있어 더 혼란스럽기 때문입니다.
      */
     fun onCompleteClick() {
         val mission = _uiState.value.actionSheetMission ?: return
 
-        _uiState.update {
-            it.copy(
-                actionSheetMission = null,
-                completedMissionIds = it.completedMissionIds + mission.id,
-                completedExp = mission.expEarned,
-            )
+        _uiState.update { it.copy(actionSheetMission = null) }
+
+        viewModelScope.launch {
+            if (!updateStatus(mission.id, MissionStatus.COMPLETED)) return@launch
+
+            _uiState.update {
+                it.copy(
+                    completedMissionIds = it.completedMissionIds + mission.id,
+                    completedExp = mission.expEarned,
+                )
+            }
+
+            // 달성일이 늘었을 수 있어 다시 받아옵니다.
+            loadChallenge()
         }
     }
 
@@ -128,21 +202,33 @@ class HomeViewModel @Inject constructor() : ViewModel() {
         _uiState.update { it.copy(deleteConfirmMission = null) }
     }
 
-    /**
-     * 미션을 목록에서 지웁니다.
-     * TODO: 미션 상태 변경 API(INACTIVE) 를 호출하도록 교체
-     */
+    /** 미션을 목록에서 지웁니다. 서버에서는 INACTIVE 로 바뀝니다. */
     fun onDeleteConfirm() {
         val mission = _uiState.value.deleteConfirmMission ?: return
 
-        _uiState.update {
-            it.copy(
-                deleteConfirmMission = null,
-                todayMissions = it.todayMissions.filterNot { item -> item.id == mission.id },
-                completedMissionIds = it.completedMissionIds - mission.id,
-            )
+        _uiState.update { it.copy(deleteConfirmMission = null) }
+
+        viewModelScope.launch {
+            if (!updateStatus(mission.id, MissionStatus.INACTIVE)) return@launch
+
+            _uiState.update {
+                it.copy(
+                    todayMissions = it.todayMissions.filterNot { item -> item.id == mission.id },
+                    completedMissionIds = it.completedMissionIds - mission.id,
+                )
+            }
+
+            loadChallenge()
         }
     }
+
+    /** 완료와 삭제는 상태 값만 다릅니다. */
+    private suspend fun updateStatus(missionId: Int, status: String): Boolean =
+        runCatching {
+            missionService.updateStatus(
+                MissionStatusRequest(listOf(MemberMissionStatus(missionId, status)))
+            )
+        }.getOrNull()?.success == true
 
     // MARK: - 연속 달성 시트
 
