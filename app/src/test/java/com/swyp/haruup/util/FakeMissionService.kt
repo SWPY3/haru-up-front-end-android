@@ -5,6 +5,8 @@ import com.swyp.haruup.data.model.GrowthData
 import com.swyp.haruup.data.model.MissionListItem
 import com.swyp.haruup.data.model.MissionStatusRequest
 import com.swyp.haruup.data.model.MonthlyMissionData
+import com.swyp.haruup.data.model.RetryMissionData
+import com.swyp.haruup.data.model.RetryMissionRequest
 import com.swyp.haruup.data.model.SelectMissionRequest
 import com.swyp.haruup.network.ApiResponse
 import com.swyp.haruup.network.service.MissionService
@@ -19,6 +21,7 @@ class FakeMissionService(
     var missions: List<MissionListItem> = emptyList(),
     var challengeDates: List<ChallengeDate> = emptyList(),
     var monthly: MonthlyMissionData = MonthlyMissionData(),
+    var retry: RetryMissionData = RetryMissionData(),
     var shouldFail: Boolean = false,
 ) : MissionService {
 
@@ -27,6 +30,7 @@ class FakeMissionService(
     val requestedMissionQueries = mutableListOf<Pair<String, String>>()
     val statusUpdates = mutableListOf<MissionStatusRequest>()
     var selectedRequest: SelectMissionRequest? = null
+    var retryRequest: RetryMissionRequest? = null
 
     private fun <T> respond(data: T): ApiResponse<T> =
         if (shouldFail) ApiResponse(success = false, data = null) else ApiResponse(success = true, data = data)
@@ -38,6 +42,11 @@ class FakeMissionService(
     ): ApiResponse<List<MissionListItem>> {
         requestedMissionQueries += missionStatus to targetDate
         return respond(missions)
+    }
+
+    override suspend fun retryMissions(request: RetryMissionRequest): ApiResponse<RetryMissionData> {
+        retryRequest = request
+        return respond(retry)
     }
 
     override suspend fun selectMissions(request: SelectMissionRequest): ApiResponse<List<Int>> {

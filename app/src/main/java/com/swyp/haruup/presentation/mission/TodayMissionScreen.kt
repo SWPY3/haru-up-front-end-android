@@ -1,9 +1,11 @@
 package com.swyp.haruup.presentation.mission
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,20 +29,26 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.swyp.haruup.R
 import com.swyp.haruup.core.designsystem.HaruUpColor
 import com.swyp.haruup.core.designsystem.HaruUpTheme
 import com.swyp.haruup.core.designsystem.HaruUpType
 import com.swyp.haruup.presentation.mission.component.MissionCard
 
 private val H_MARGIN = 20.dp
+private val RETRY_ICON_SIZE = 20.dp
+private val RETRY_ICON_TO_TEXT = 4.dp
 private val HEADER_TOP = 16.dp
 private val TITLE_TO_SUBTITLE = 4.dp
 private val SUBTITLE_TO_FILTER = 18.dp
@@ -73,6 +81,7 @@ fun TodayMissionScreen(
 
     TodayMissionContent(
         uiState = uiState,
+        onRetryClick = viewModel::onRetryClick,
         onFilterClick = viewModel::onFilterClick,
         onMissionClick = viewModel::onMissionClick,
         onCompleteClick = { viewModel.onCompleteClick(onCompleted) },
@@ -83,6 +92,7 @@ fun TodayMissionScreen(
 @Composable
 private fun TodayMissionContent(
     uiState: TodayMissionUiState,
+    onRetryClick: () -> Unit,
     onFilterClick: (MissionDifficultyFilter) -> Unit,
     onMissionClick: (Int) -> Unit,
     onCompleteClick: () -> Unit,
@@ -96,6 +106,9 @@ private fun TodayMissionContent(
     ) {
         MissionListHeader(
             filter = uiState.filter,
+            retryLabel = uiState.retryLabel,
+            isRetryEnabled = uiState.isRetryEnabled,
+            onRetryClick = onRetryClick,
             onFilterClick = onFilterClick,
         )
 
@@ -132,20 +145,69 @@ private fun TodayMissionContent(
     }
 }
 
+/**
+ * 제목 오른쪽의 "다른 추천 N/5회" 버튼.
+ * 횟수를 다 쓰면 흐려지고 눌리지 않습니다. (iOS 와 같은 처리)
+ */
+@Composable
+private fun RetryButton(
+    label: String,
+    isEnabled: Boolean,
+    onClick: () -> Unit,
+) {
+    val color = if (isEnabled) HaruUpColor.Neutral500 else HaruUpColor.Neutral300
+
+    Row(
+        modifier = Modifier.clickable(
+            enabled = isEnabled,
+            interactionSource = remember { MutableInteractionSource() },
+            indication = null,
+            onClick = onClick,
+        ),
+        horizontalArrangement = Arrangement.spacedBy(RETRY_ICON_TO_TEXT),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Image(
+            painter = painterResource(R.drawable.ic_retry),
+            contentDescription = null,
+            colorFilter = ColorFilter.tint(color),
+            modifier = Modifier.size(RETRY_ICON_SIZE),
+        )
+
+        Text(text = label, style = HaruUpType.retryButton, color = color)
+    }
+}
+
 @Composable
 private fun MissionListHeader(
     filter: MissionDifficultyFilter,
+    retryLabel: String,
+    isRetryEnabled: Boolean,
+    onRetryClick: () -> Unit,
     onFilterClick: (MissionDifficultyFilter) -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Spacer(Modifier.height(HEADER_TOP))
 
-        Text(
-            text = "AI 추천미션",
-            style = HaruUpType.title3,
-            color = HaruUpColor.AppBlack,
-            modifier = Modifier.padding(horizontal = H_MARGIN),
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = H_MARGIN),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "AI 추천미션",
+                style = HaruUpType.title3,
+                color = HaruUpColor.AppBlack,
+                modifier = Modifier.weight(1f),
+            )
+
+            RetryButton(
+                label = retryLabel,
+                isEnabled = isRetryEnabled,
+                onClick = onRetryClick,
+            )
+        }
 
         Spacer(Modifier.height(TITLE_TO_SUBTITLE))
 
@@ -272,7 +334,7 @@ private fun TodayMissionPreview() {
     HaruUpTheme {
         TodayMissionContent(
             uiState = TodayMissionUiState(missions = previewMissions),
-            onFilterClick = {}, onMissionClick = {}, onCompleteClick = {},
+            onRetryClick = {}, onFilterClick = {}, onMissionClick = {}, onCompleteClick = {},
         )
     }
 }
@@ -286,7 +348,7 @@ private fun TodayMissionFullPreview() {
                 missions = previewMissions,
                 selectedIds = previewMissions.map { it.id }.toSet(),
             ),
-            onFilterClick = {}, onMissionClick = {}, onCompleteClick = {},
+            onRetryClick = {}, onFilterClick = {}, onMissionClick = {}, onCompleteClick = {},
         )
     }
 }

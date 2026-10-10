@@ -5,6 +5,8 @@ import com.swyp.haruup.data.model.GrowthData
 import com.swyp.haruup.data.model.MissionListItem
 import com.swyp.haruup.data.model.MissionStatusRequest
 import com.swyp.haruup.data.model.MonthlyMissionData
+import com.swyp.haruup.data.model.RetryMissionData
+import com.swyp.haruup.data.model.RetryMissionRequest
 import com.swyp.haruup.data.model.SelectMissionRequest
 import com.swyp.haruup.network.ApiPath
 import com.swyp.haruup.network.ApiResponse
@@ -32,6 +34,10 @@ interface MissionService {
         @Query("targetDate") targetDate: String,
         @Query("memberInterestId") memberInterestId: Int? = null,
     ): ApiResponse<List<MissionListItem>>
+
+    /** 다른 미션으로 다시 추천받습니다. 하루에 쓸 수 있는 횟수가 정해져 있습니다. */
+    @POST(ApiPath.Mission.RETRY)
+    suspend fun retryMissions(@Body request: RetryMissionRequest): ApiResponse<RetryMissionData>
 
     /** 고른 미션을 확정합니다. */
     @POST(ApiPath.Mission.SELECT)
