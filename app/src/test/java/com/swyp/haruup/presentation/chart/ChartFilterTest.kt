@@ -71,9 +71,9 @@ class ChartFilterTest {
 
     @Test
     fun `관심사는 이름 그대로 보낸다`() {
-        val query = ChartFilter.toQuery(listOf("외국어 공부", "재테크/투자"))
+        val query = ChartFilter.toQuery(listOf("외국어 공부", "재테크 및 투자"))
 
-        assertEquals(listOf("외국어 공부", "재테크/투자"), query.interests)
+        assertEquals(listOf("외국어 공부", "재테크 및 투자"), query.interests)
     }
 
     @Test

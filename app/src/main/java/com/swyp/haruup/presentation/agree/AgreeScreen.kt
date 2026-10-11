@@ -1,8 +1,5 @@
 package com.swyp.haruup.presentation.agree
 
-import android.content.ActivityNotFoundException
-import android.net.Uri
-import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -22,7 +19,9 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -32,9 +31,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.swyp.haruup.R
+import com.swyp.haruup.core.component.HaruUpToast
 import com.swyp.haruup.core.designsystem.HaruUpColor
 import com.swyp.haruup.core.designsystem.HaruUpTheme
 import com.swyp.haruup.core.designsystem.HaruUpType
+import com.swyp.haruup.core.util.LINK_OPEN_FAILED_MESSAGE
+import com.swyp.haruup.core.util.openExternalLink
 import com.swyp.haruup.presentation.agree.component.AgreementRow
 
 private val HORIZONTAL_MARGIN = 20.dp
@@ -47,6 +49,7 @@ private val BETWEEN_TERMS = 4.dp
 private val CONFIRM_HEIGHT = 56.dp
 private val CONFIRM_BOTTOM_MARGIN = 10.dp
 private val CORNER_RADIUS = 16.dp
+private val TOAST_TO_CONFIRM = 12.dp
 
 /**
  * iOS 의 AgreeViewController 에 대응합니다.
@@ -61,6 +64,7 @@ fun AgreeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    var toastMessage by remember { mutableStateOf<String?>(null) }
 
     AgreeContent(
         uiState = uiState,
@@ -68,14 +72,11 @@ fun AgreeScreen(
         onAllClick = viewModel::onAllClick,
         onTermClick = viewModel::onTermClick,
         onTermDetailClick = { url ->
-            try {
-                CustomTabsIntent.Builder().build().launchUrl(context, Uri.parse(url))
-            } catch (e: ActivityNotFoundException) {
-                // 브라우저가 없는 기기에서는 아무 동작도 하지 않는다.
-                // TODO: 공통 에러 처리 방식이 정해지면 토스트 등으로 알린다.
-            }
+            if (!context.openExternalLink(url)) toastMessage = LINK_OPEN_FAILED_MESSAGE
         },
         onAgreed = onAgreed,
+        toastMessage = toastMessage,
+        onToastShown = { toastMessage = null },
         modifier = modifier,
     )
 }
@@ -89,6 +90,8 @@ private fun AgreeContent(
     onTermDetailClick: (String) -> Unit,
     onAgreed: () -> Unit,
     modifier: Modifier = Modifier,
+    toastMessage: String? = null,
+    onToastShown: () -> Unit = {},
 ) {
     Column(
         modifier = modifier
@@ -158,6 +161,15 @@ private fun AgreeContent(
         }
 
         Spacer(Modifier.weight(1f))
+
+        HaruUpToast(
+            message = toastMessage,
+            onDismiss = onToastShown,
+            showCheckIcon = false,
+            modifier = Modifier.padding(horizontal = HORIZONTAL_MARGIN),
+        )
+
+        Spacer(Modifier.height(TOAST_TO_CONFIRM))
 
         Button(
             onClick = onAgreed,

@@ -1,7 +1,5 @@
 package com.swyp.haruup.presentation.mypage
 
-import android.net.Uri
-import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -26,6 +24,7 @@ import com.swyp.haruup.core.component.HaruUpNoticeDialog
 import com.swyp.haruup.core.designsystem.HaruUpColor
 import com.swyp.haruup.core.designsystem.HaruUpTheme
 import com.swyp.haruup.core.designsystem.HaruUpType
+import com.swyp.haruup.core.util.openExternalLink
 import com.swyp.haruup.presentation.mypage.component.MyPageMenuList
 import com.swyp.haruup.presentation.mypage.component.MyPageProfileHeader
 
@@ -66,7 +65,7 @@ fun MyPageScreen(
         onMenuClick = { menu ->
             when {
                 menu.url != null ->
-                    CustomTabsIntent.Builder().build().launchUrl(context, Uri.parse(menu.url))
+                    if (!context.openExternalLink(menu.url)) viewModel.onLinkOpenFailed()
 
                 menu == MyPageMenu.NOTIFICATION_SETTING -> onNotificationSettingClick()
 

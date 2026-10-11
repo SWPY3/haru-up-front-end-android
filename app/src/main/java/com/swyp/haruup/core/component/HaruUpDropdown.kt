@@ -236,7 +236,7 @@ private fun HaruUpDropdownPreview() {
     val items = listOf(
         Item(1, "외국어 공부"),
         Item(2, "자격증 공부"),
-        Item(3, "재테크/투자"),
+        Item(3, "재테크 및 투자"),
         Item(4, "체력관리 및 운동"),
         Item(5, "직무 관련 역량 개발"),
     )

@@ -3,6 +3,7 @@ package com.swyp.haruup.presentation.mypage
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.swyp.haruup.BuildConfig
+import com.swyp.haruup.core.util.LINK_OPEN_FAILED_MESSAGE
 import com.swyp.haruup.data.local.TokenStorage
 import com.swyp.haruup.data.model.WithdrawRequest
 import com.swyp.haruup.network.service.AuthService
@@ -74,6 +75,11 @@ class MyPageViewModel @Inject constructor(
             // 나머지는 화면 이동이나 외부 브라우저라 화면 쪽에서 처리합니다.
             else -> Unit
         }
+    }
+
+    /** 브라우저가 없어 약관 등을 열지 못했을 때 */
+    fun onLinkOpenFailed() {
+        _uiState.update { it.copy(dialog = MyPageDialog.Error(LINK_OPEN_FAILED_MESSAGE)) }
     }
 
     fun onDialogDismiss() {
