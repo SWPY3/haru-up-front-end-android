@@ -28,6 +28,8 @@ class TokenStorageImpl @Inject constructor(
     /** 온보딩을 마친 회원이 누구였는지. 계정이 바뀌면 온보딩을 다시 시켜야 해서 함께 둡니다. */
     private val onboardingMemberIdKey = stringPreferencesKey("onboarding_member_id")
 
+    private val lastMissionIntroDateKey = stringPreferencesKey("last_mission_intro_date")
+
     override suspend fun getAccessToken(): String? =
         context.dataStore.data.first()[accessTokenKey]
 
@@ -83,6 +85,13 @@ class TokenStorageImpl @Inject constructor(
             val memberId = prefs[memberIdKey]
             if (completed && memberId != null) prefs[onboardingMemberIdKey] = memberId
         }
+    }
+
+    override suspend fun getLastMissionIntroDate(): String? =
+        context.dataStore.data.first()[lastMissionIntroDateKey]
+
+    override suspend fun setLastMissionIntroDate(date: String) {
+        context.dataStore.edit { it[lastMissionIntroDateKey] = date }
     }
 
     override suspend fun clear() {

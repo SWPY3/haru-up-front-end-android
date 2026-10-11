@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.offset
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
@@ -41,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.swyp.haruup.R
+import com.swyp.haruup.core.component.HaruUpToast
 import com.swyp.haruup.core.designsystem.HaruUpColor
 import com.swyp.haruup.core.designsystem.HaruUpTheme
 import com.swyp.haruup.core.designsystem.HaruUpType
@@ -61,6 +63,12 @@ private val BOTTOM_V_PADDING = 16.dp
 private val COMPLETE_BUTTON_WIDTH = 152.dp
 private val COMPLETE_BUTTON_HEIGHT = 56.dp
 private val CORNER_RADIUS = 16.dp
+private val CLOSE_BAR_HEIGHT = 54.dp
+private val CLOSE_BUTTON_SIZE = 44.dp
+private val CLOSE_BUTTON_TRAILING = 12.dp
+private val SKELETON_HEIGHT = 110.dp
+private val SKELETON_SPACING = 12.dp
+private val TOAST_BOTTOM = 12.dp
 
 /**
  * 큐레이션 직후 미션 선택 화면.
@@ -85,6 +93,45 @@ fun TodayMissionScreen(
         onFilterClick = viewModel::onFilterClick,
         onMissionClick = viewModel::onMissionClick,
         onCompleteClick = { viewModel.onCompleteClick(onCompleted) },
+        onCloseClick = {},
+        onReloadClick = viewModel::onReloadClick,
+        onErrorShown = viewModel::onErrorShown,
+        modifier = modifier,
+    )
+}
+
+/**
+ * 홈에서 미션을 고르거나 더할 때의 화면.
+ * iOS 의 TodayMissionCoordinator 가 띄우던 소개 → 목록 흐름에 대응합니다.
+ *
+ * @param fixedIds 오늘 이미 고른 미션. 비어 있으면 처음 고르러 온 것이라 소개 화면을 보여 줄 수 있습니다.
+ */
+@Composable
+fun HomeMissionSelectScreen(
+    fixedIds: List<Int>,
+    onClose: () -> Unit,
+    onCompleted: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: TodayMissionViewModel = hiltViewModel(),
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) { viewModel.startFromHome(fixedIds) }
+
+    if (uiState.isIntroVisible) {
+        TodayMissionIntroScreen(onConfirm = viewModel::onIntroConfirm, modifier = modifier)
+        return
+    }
+
+    TodayMissionContent(
+        uiState = uiState,
+        onRetryClick = viewModel::onRetryClick,
+        onFilterClick = viewModel::onFilterClick,
+        onMissionClick = viewModel::onMissionClick,
+        onCompleteClick = { viewModel.onCompleteClick { onCompleted() } },
+        onCloseClick = onClose,
+        onReloadClick = viewModel::onReloadClick,
+        onErrorShown = viewModel::onErrorShown,
         modifier = modifier,
     )
 }
@@ -96,6 +143,9 @@ private fun TodayMissionContent(
     onFilterClick: (MissionDifficultyFilter) -> Unit,
     onMissionClick: (Int) -> Unit,
     onCompleteClick: () -> Unit,
+    onCloseClick: () -> Unit,
+    onReloadClick: () -> Unit,
+    onErrorShown: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -104,6 +154,8 @@ private fun TodayMissionContent(
             .background(HaruUpColor.Neutral10)
             .statusBarsPadding(),
     ) {
+        if (uiState.isClosable) CloseBar(onCloseClick = onCloseClick)
+
         MissionListHeader(
             filter = uiState.filter,
             retryLabel = uiState.retryLabel,
@@ -113,15 +165,13 @@ private fun TodayMissionContent(
         )
 
         Box(modifier = Modifier.weight(1f)) {
-            if (uiState.filteredMissions.isEmpty()) {
-                Text(
-                    text = "추천된 미션이 없어요.\n잠시 후 다시 시도해주세요.",
-                    style = HaruUpType.body1,
-                    color = HaruUpColor.Neutral600,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(horizontal = 24.dp),
+            if (uiState.isLoading && uiState.missions.isEmpty()) {
+                MissionSkeletonList()
+            } else if (uiState.filteredMissions.isEmpty()) {
+                EmptyMissionMessage(
+                    isLoadFailed = uiState.isLoadFailed,
+                    onReloadClick = onReloadClick,
+                    modifier = Modifier.align(Alignment.Center),
                 )
             } else {
                 LazyColumn(contentPadding = PaddingValues(bottom = 12.dp)) {
@@ -135,6 +185,16 @@ private fun TodayMissionContent(
                     }
                 }
             }
+
+            HaruUpToast(
+                message = uiState.errorMessage,
+                onDismiss = onErrorShown,
+                showCheckIcon = false,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = H_MARGIN)
+                    .offset(y = -TOAST_BOTTOM),
+            )
         }
 
         SelectionBottomBar(
@@ -142,6 +202,84 @@ private fun TodayMissionContent(
             isCompleteEnabled = uiState.isCompleteEnabled,
             onCompleteClick = onCompleteClick,
         )
+    }
+}
+
+/** 홈에서 들어왔을 때만 보이는 오른쪽 위 닫기 버튼 */
+@Composable
+private fun CloseBar(onCloseClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(CLOSE_BAR_HEIGHT)
+            .padding(end = CLOSE_BUTTON_TRAILING),
+        contentAlignment = Alignment.CenterEnd,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(CLOSE_BUTTON_SIZE)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onCloseClick,
+                ),
+            contentAlignment = Alignment.Center,
+        ) {
+            Image(painter = painterResource(R.drawable.ic_xmark), contentDescription = "닫기")
+        }
+    }
+}
+
+/** 추천을 받아오는 동안 카드 자리를 미리 잡아 둡니다. (iOS SkeletonMissionCell 대응) */
+@Composable
+private fun MissionSkeletonList() {
+    Column(
+        modifier = Modifier.padding(horizontal = H_MARGIN),
+        verticalArrangement = Arrangement.spacedBy(SKELETON_SPACING),
+    ) {
+        repeat(TodayMissionUiState.MAX_SELECTION) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(SKELETON_HEIGHT)
+                    .clip(RoundedCornerShape(CORNER_RADIUS))
+                    .background(HaruUpColor.Neutral50),
+            )
+        }
+    }
+}
+
+/** 추천이 비었을 때. 받아오지 못한 경우에만 다시 불러오기 버튼을 둡니다. */
+@Composable
+private fun EmptyMissionMessage(
+    isLoadFailed: Boolean,
+    onReloadClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.padding(horizontal = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = "추천된 미션이 없어요.\n잠시 후 다시 시도해주세요.",
+            style = HaruUpType.body1,
+            color = HaruUpColor.Neutral600,
+            textAlign = TextAlign.Center,
+        )
+
+        if (isLoadFailed) {
+            Spacer(Modifier.height(16.dp))
+
+            Text(
+                text = "다시 불러오기",
+                style = HaruUpType.subtitle2,
+                color = HaruUpColor.Cta,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(CORNER_RADIUS))
+                    .clickable(onClick = onReloadClick)
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+            )
+        }
     }
 }
 
@@ -335,6 +473,7 @@ private fun TodayMissionPreview() {
         TodayMissionContent(
             uiState = TodayMissionUiState(missions = previewMissions),
             onRetryClick = {}, onFilterClick = {}, onMissionClick = {}, onCompleteClick = {},
+            onCloseClick = {}, onReloadClick = {}, onErrorShown = {},
         )
     }
 }
@@ -349,6 +488,31 @@ private fun TodayMissionFullPreview() {
                 selectedIds = previewMissions.map { it.id }.toSet(),
             ),
             onRetryClick = {}, onFilterClick = {}, onMissionClick = {}, onCompleteClick = {},
+            onCloseClick = {}, onReloadClick = {}, onErrorShown = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, device = "id:pixel_7", name = "홈에서 추가")
+@Composable
+private fun HomeMissionSelectPreview() {
+    HaruUpTheme {
+        TodayMissionContent(
+            uiState = TodayMissionUiState(missions = previewMissions.take(3), fixedCount = 2, isClosable = true),
+            onRetryClick = {}, onFilterClick = {}, onMissionClick = {}, onCompleteClick = {},
+            onCloseClick = {}, onReloadClick = {}, onErrorShown = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, device = "id:pixel_7", name = "불러오는 중")
+@Composable
+private fun HomeMissionLoadingPreview() {
+    HaruUpTheme {
+        TodayMissionContent(
+            uiState = TodayMissionUiState(isLoading = true, isClosable = true),
+            onRetryClick = {}, onFilterClick = {}, onMissionClick = {}, onCompleteClick = {},
+            onCloseClick = {}, onReloadClick = {}, onErrorShown = {},
         )
     }
 }

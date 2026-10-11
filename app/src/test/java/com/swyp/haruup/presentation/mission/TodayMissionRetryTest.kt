@@ -3,6 +3,7 @@ package com.swyp.haruup.presentation.mission
 import com.swyp.haruup.data.model.RetryMissionData
 import com.swyp.haruup.data.model.RetryMissionGroup
 import com.swyp.haruup.data.model.RetryMissionItem
+import com.swyp.haruup.util.FakeInterestService
 import com.swyp.haruup.util.FakeMissionService
 import com.swyp.haruup.util.FakeTokenStorage
 import com.swyp.haruup.util.MainDispatcherRule
@@ -44,7 +45,7 @@ class TodayMissionRetryTest {
     )
 
     private fun viewModel(service: FakeMissionService) =
-        TodayMissionViewModel(service, FakeTokenStorage()).apply {
+        TodayMissionViewModel(service, FakeInterestService(), FakeTokenStorage()).apply {
             setMissions(listOf(mission(1), mission(2), mission(3)))
         }
 

@@ -39,6 +39,7 @@ private val EMPTY_TO_ADD_SPACING = 16.dp
  */
 @Composable
 fun HomeScreen(
+    onSelectMissionClick: (fixedIds: List<Int>) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
@@ -46,8 +47,10 @@ fun HomeScreen(
 
     // 프로필 수정에서 닉네임을 바꾸고 돌아오면 바로 반영되도록 다시 받아옵니다.
     // (iOS 는 changedProfile 알림으로 같은 일을 합니다)
+    // 미션도 고르고 돌아오면 바로 보여야 해서 같이 받아옵니다. (iOS didCompleteMissionSelection 대응)
     LifecycleResumeEffect(viewModel) {
         viewModel.loadMemberInfo()
+        viewModel.loadTodayMissions()
         onPauseOrDispose { }
     }
 
@@ -57,6 +60,8 @@ fun HomeScreen(
         onInfoClick = viewModel::onInfoClick,
         onChallengeClick = viewModel::onChallengeClick,
         onMissionSettingClick = viewModel::onMissionSettingClick,
+        // 처음 고를 때는 빈 목록을, 더할 때는 오늘 고른 미션을 넘깁니다. 넘긴 미션은 추천에서 빠집니다.
+        onAddMissionClick = { onSelectMissionClick(uiState.todayMissions.map { it.id }) },
         modifier = modifier,
     )
 
@@ -96,6 +101,7 @@ private fun HomeContent(
     onInfoClick: () -> Unit,
     onChallengeClick: () -> Unit,
     onMissionSettingClick: (MissionItem) -> Unit,
+    onAddMissionClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -125,8 +131,7 @@ private fun HomeContent(
 
         if (!uiState.hasMissions) {
             item(key = "empty") {
-                // TODO: 미션 선택 화면으로 이동하도록 교체
-                EmptyMissionCard(onAddClick = {})
+                EmptyMissionCard(onAddClick = onAddMissionClick)
             }
         } else {
             items(items = uiState.todayMissions, key = { it.id }) { mission ->
@@ -140,8 +145,7 @@ private fun HomeContent(
             if (uiState.canAddMission) {
                 item(key = "add") {
                     Spacer(Modifier.height(EMPTY_TO_ADD_SPACING))
-                    // TODO: 미션 추가 화면으로 이동하도록 교체
-                    AddMissionRow(onAddClick = {})
+                    AddMissionRow(onAddClick = onAddMissionClick)
                 }
             }
         }
@@ -175,6 +179,7 @@ private fun HomePreview() {
                 completedMissionIds = setOf(3),
             ),
             onBubbleClick = {}, onInfoClick = {}, onChallengeClick = {}, onMissionSettingClick = {},
+            onAddMissionClick = {},
         )
     }
 }
@@ -186,6 +191,7 @@ private fun HomeEmptyPreview() {
         HomeContent(
             uiState = HomeUiState(memberInfo = previewMemberInfo, isTooltipVisible = true),
             onBubbleClick = {}, onInfoClick = {}, onChallengeClick = {}, onMissionSettingClick = {},
+            onAddMissionClick = {},
         )
     }
 }

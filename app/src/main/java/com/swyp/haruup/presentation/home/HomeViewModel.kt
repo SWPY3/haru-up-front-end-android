@@ -82,7 +82,6 @@ class HomeViewModel @Inject constructor(
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     init {
-        loadTodayMissions()
         loadChallenge()
     }
 
@@ -111,8 +110,11 @@ class HomeViewModel @Inject constructor(
      * 오늘 고른 미션을 받아옵니다.
      *
      * 완료한 미션도 함께 받아 목록에 남겨 둡니다. 지운 미션만 빠집니다. (iOS 와 같은 조회 조건)
+     *
+     * 미션을 고르고 돌아올 때마다 다시 받아야 해서 화면이 보일 때 호출합니다.
+     * init 에서도 부르면 처음 들어올 때 두 번 받아오게 됩니다.
      */
-    private fun loadTodayMissions() {
+    fun loadTodayMissions() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 

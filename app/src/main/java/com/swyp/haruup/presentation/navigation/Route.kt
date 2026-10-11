@@ -22,6 +22,18 @@ object Route {
     const val NOTIFICATION_SETTING = "notification_setting"
     const val INTEREST_EDIT = "interest_edit"
 
+    /** 오늘 이미 고른 미션 ID. 쉼표로 이어 붙입니다. */
+    const val ARG_FIXED_IDS = "fixedIds"
+
+    /**
+     * 홈에서 오늘의 미션을 고르거나 더하는 화면. 탭바 위를 덮어야 해서 메인 탭 밖에 둡니다.
+     * (iOS 는 overFullScreen 모달로 띄웁니다)
+     */
+    const val MISSION_SELECT = "mission_select?$ARG_FIXED_IDS={$ARG_FIXED_IDS}"
+
+    fun missionSelect(fixedIds: List<Int>): String =
+        "mission_select?$ARG_FIXED_IDS=${fixedIds.joinToString(",")}"
+
     /**
      * 큐레이션 중첩 그래프.
      * CurationViewModel 이 이 경로의 BackStackEntry 에 스코프되어 단계 간 데이터를 공유합니다.

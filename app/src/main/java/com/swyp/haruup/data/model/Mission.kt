@@ -98,7 +98,16 @@ data class RetryMissionRequest(
     val excludeMemberMissionIds: List<Int>? = null,
 )
 
-/** 재추천 응답. 관심사별로 묶여 오고 남은 횟수가 함께 옵니다. */
+/** POST /api/missions/recommend 요청 body. iOS 의 RecommendMultipleRequestDTO 에 대응합니다. */
+@Serializable
+data class RecommendMissionRequest(
+    val memberInterestIds: List<Int>,
+)
+
+/**
+ * 추천 / 재추천 응답. 관심사별로 묶여 오고 남은 횟수가 함께 옵니다.
+ * 두 API 의 응답 모양이 같아 함께 씁니다.
+ */
 @Serializable
 data class RetryMissionData(
     val missions: List<RetryMissionGroup> = emptyList(),

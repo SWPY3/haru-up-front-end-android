@@ -32,5 +32,10 @@ interface TokenStorage {
 
     suspend fun setOnboardingCompleted(completed: Boolean)
 
+    /** 미션 고르기 소개 화면을 마지막으로 보여 준 날(yyyy-MM-dd). 하루 한 번만 보여 주려고 둡니다. */
+    suspend fun getLastMissionIntroDate(): String?
+
+    suspend fun setLastMissionIntroDate(date: String)
+
     suspend fun clear()
 }

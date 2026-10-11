@@ -5,6 +5,8 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -17,6 +19,7 @@ import com.swyp.haruup.presentation.curation.chat.CurationChatScreen
 import com.swyp.haruup.presentation.curation.curationViewModel
 import com.swyp.haruup.presentation.curation.personality.PersonalitySelectScreen
 import com.swyp.haruup.presentation.login.LoginScreen
+import com.swyp.haruup.presentation.mission.HomeMissionSelectScreen
 import com.swyp.haruup.presentation.mission.MissionDifficulty
 import com.swyp.haruup.presentation.mission.MissionItem
 import com.swyp.haruup.presentation.mission.TodayMissionScreen
@@ -77,12 +80,35 @@ fun HaruUpNavHost() {
             MainTabScreen(
                 onEditProfileClick = { navController.navigate(Route.PROFILE_EDIT) },
                 onNotificationSettingClick = { navController.navigate(Route.NOTIFICATION_SETTING) },
+                onSelectMissionClick = { fixedIds -> navController.navigate(Route.missionSelect(fixedIds)) },
                 // 로그아웃·탈퇴 후에는 뒤로 가기로 돌아올 수 없어야 하므로 스택을 비웁니다.
                 onSignedOut = {
                     navController.navigate(Route.LOGIN) {
                         popUpTo(0) { inclusive = true }
                     }
                 },
+            )
+        }
+
+        composable(
+            route = Route.MISSION_SELECT,
+            arguments = listOf(
+                navArgument(Route.ARG_FIXED_IDS) {
+                    type = NavType.StringType
+                    defaultValue = ""
+                }
+            ),
+        ) { entry ->
+            val fixedIds = entry.arguments?.getString(Route.ARG_FIXED_IDS)
+                .orEmpty()
+                .split(",")
+                .mapNotNull { it.toIntOrNull() }
+
+            // 닫거나 고르고 나면 홈으로 돌아갑니다. 홈은 다시 보일 때 미션을 새로 받아옵니다.
+            HomeMissionSelectScreen(
+                fixedIds = fixedIds,
+                onClose = { navController.popBackStack() },
+                onCompleted = { navController.popBackStack() },
             )
         }
 
@@ -172,7 +198,6 @@ private fun NavGraphBuilder.curationGraph(navController: NavHostController) {
                     )
                 },
                 onCompleted = {
-                    // TODO: 선택한 미션 ID 를 미션 선택 API 로 보내도록 교체
                     navController.navigate(Route.MAIN_TAB) {
                         popUpTo(Route.LOGIN) { inclusive = true }
                     }

@@ -42,6 +42,12 @@ object ApiPath {
         /** 오늘 고를 수 있는 미션 추천 */
         const val RECOMMEND = "api/member/mission/recommend"
 
+        /**
+         * 관심사 여러 개의 미션을 한 번에 추천. 홈에서 미션을 고를 때 씁니다.
+         * 다른 경로와 달리 api/member 아래가 아닙니다. (iOS recommendMultiple 과 동일)
+         */
+        const val RECOMMEND_MULTIPLE = "api/missions/recommend"
+
         /** 다른 미션으로 다시 추천 */
         const val RETRY = "api/member/mission/retry"
 

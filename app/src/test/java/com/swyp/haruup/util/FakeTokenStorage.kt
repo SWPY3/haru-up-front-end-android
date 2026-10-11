@@ -8,6 +8,7 @@ class FakeTokenStorage(
     private var refreshToken: String? = null,
     private var memberId: String? = null,
     private var onboardingCompleted: Boolean = false,
+    private var lastMissionIntroDate: String? = null,
 ) : TokenStorage {
 
     /** 온보딩을 마친 회원. 계정이 바뀌었는지 보는 데 씁니다. */
@@ -45,11 +46,18 @@ class FakeTokenStorage(
         if (completed) onboardingMemberId = memberId
     }
 
+    override suspend fun getLastMissionIntroDate(): String? = lastMissionIntroDate
+
+    override suspend fun setLastMissionIntroDate(date: String) {
+        lastMissionIntroDate = date
+    }
+
     override suspend fun clear() {
         accessToken = null
         refreshToken = null
         memberId = null
         onboardingCompleted = false
         onboardingMemberId = null
+        lastMissionIntroDate = null
     }
 }

@@ -41,6 +41,7 @@ class HomeMissionApiTest {
         val completed = mission.copy(id = 2, missionStatus = MissionStatus.COMPLETED)
         val service = service(mission, completed)
         val vm = HomeViewModel(service, FakeMemberService())
+        vm.loadTodayMissions()
         advanceUntilIdle()
 
         assertEquals(2, vm.uiState.value.todayMissions.size)
@@ -55,6 +56,7 @@ class HomeMissionApiTest {
     fun `완료하면 서버에 COMPLETED 로 알린다`() = runTest {
         val service = service(mission)
         val vm = HomeViewModel(service, FakeMemberService())
+        vm.loadTodayMissions()
         advanceUntilIdle()
 
         vm.onMissionSettingClick(vm.uiState.value.todayMissions.first())
@@ -73,6 +75,7 @@ class HomeMissionApiTest {
     fun `완료가 실패하면 화면을 바꾸지 않는다`() = runTest {
         val service = service(mission)
         val vm = HomeViewModel(service, FakeMemberService())
+        vm.loadTodayMissions()
         advanceUntilIdle()
 
         // 목록은 받아 둔 뒤부터 실패하게 만듭니다.
@@ -90,6 +93,7 @@ class HomeMissionApiTest {
     fun `삭제하면 서버에 INACTIVE 로 알리고 목록에서 뺀다`() = runTest {
         val service = service(mission)
         val vm = HomeViewModel(service, FakeMemberService())
+        vm.loadTodayMissions()
         advanceUntilIdle()
 
         vm.onMissionSettingClick(vm.uiState.value.todayMissions.first())
@@ -105,6 +109,7 @@ class HomeMissionApiTest {
     fun `삭제가 실패하면 목록에 그대로 남는다`() = runTest {
         val service = service(mission)
         val vm = HomeViewModel(service, FakeMemberService())
+        vm.loadTodayMissions()
         advanceUntilIdle()
 
         service.shouldFail = true

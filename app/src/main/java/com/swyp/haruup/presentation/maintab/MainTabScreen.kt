@@ -21,6 +21,7 @@ import com.swyp.haruup.presentation.navigation.TabRoute
 fun MainTabScreen(
     onEditProfileClick: () -> Unit,
     onNotificationSettingClick: () -> Unit,
+    onSelectMissionClick: (fixedIds: List<Int>) -> Unit,
     onSignedOut: () -> Unit,
 ) {
     val navController = rememberNavController()
@@ -48,7 +49,7 @@ fun MainTabScreen(
             startDestination = TabRoute.HOME,
             modifier = Modifier.padding(innerPadding),
         ) {
-            composable(TabRoute.HOME) { HomeScreen() }
+            composable(TabRoute.HOME) { HomeScreen(onSelectMissionClick = onSelectMissionClick) }
             composable(TabRoute.HISTORY) { HistoryScreen() }
             composable(TabRoute.CHART) { ChartScreen() }
             composable(TabRoute.MY_PAGE) {
