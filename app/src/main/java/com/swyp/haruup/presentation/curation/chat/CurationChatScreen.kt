@@ -29,6 +29,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.swyp.haruup.core.analytics.Analytics
+import com.swyp.haruup.core.analytics.AppEvent
 import kotlinx.coroutines.delay
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -77,6 +79,7 @@ fun CurationChatScreen(
     // 완료 문구를 잠깐 보여준 뒤 다음 화면으로 넘어갑니다. (iOS 도 1초 지연)
     LaunchedEffect(uiState.isCompleted) {
         if (uiState.isCompleted) {
+            Analytics.track(AppEvent.CurationChat.CHAT_COMPLETED)
             delay(COMPLETION_DELAY_MILLIS)
             onCompleted(viewModel.collectedNickname, viewModel.completedMissions)
         }
@@ -84,7 +87,10 @@ fun CurationChatScreen(
 
     if (uiState.showRestartConfirm) {
         RestartConfirmModal(
-            onRestart = viewModel::onRestartClick,
+            onRestart = {
+                Analytics.track(AppEvent.CurationChat.EXIT_CONFIRM_TAPPED)
+                viewModel.onRestartClick()
+            },
             onContinue = viewModel::onContinueClick,
         )
     }
@@ -92,10 +98,20 @@ fun CurationChatScreen(
     CurationChatContent(
         uiState = uiState,
         characterId = characterId,
-        onCloseClick = viewModel::onCloseClick,
+        onCloseClick = {
+            Analytics.track(AppEvent.CurationChat.CLOSE_TAPPED)
+            viewModel.onCloseClick()
+        },
         onInputChange = viewModel::onInputChange,
-        onSendClick = viewModel::onSendClick,
-        onSuggestionClick = viewModel::onSuggestionClick,
+        onSendClick = {
+            // iOS 는 전송 버튼과 키보드 전송 모두에서 보냅니다. 둘 다 여기로 들어옵니다.
+            Analytics.track(AppEvent.CurationChat.MESSAGE_SENT)
+            viewModel.onSendClick()
+        },
+        onSuggestionClick = { chip ->
+            Analytics.track(AppEvent.CurationChat.SUGGESTION_CHIP_TAPPED, mapOf("chip" to chip))
+            viewModel.onSuggestionClick(chip)
+        },
         modifier = modifier,
     )
 }

@@ -42,6 +42,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.swyp.haruup.R
+import com.swyp.haruup.core.analytics.Analytics
+import com.swyp.haruup.core.analytics.AppEvent
 import com.swyp.haruup.core.component.HaruUpToast
 import com.swyp.haruup.core.designsystem.HaruUpColor
 import com.swyp.haruup.core.designsystem.HaruUpTheme
@@ -89,10 +91,16 @@ fun TodayMissionScreen(
 
     TodayMissionContent(
         uiState = uiState,
-        onRetryClick = viewModel::onRetryClick,
+        onRetryClick = {
+            Analytics.track(AppEvent.MissionList.REFRESH_TAPPED)
+            viewModel.onRetryClick()
+        },
         onFilterClick = viewModel::onFilterClick,
         onMissionClick = viewModel::onMissionClick,
-        onCompleteClick = { viewModel.onCompleteClick(onCompleted) },
+        onCompleteClick = {
+            trackComplete(uiState)
+            viewModel.onCompleteClick(onCompleted)
+        },
         onCloseClick = {},
         onReloadClick = viewModel::onReloadClick,
         onErrorShown = viewModel::onErrorShown,
@@ -119,21 +127,52 @@ fun HomeMissionSelectScreen(
     LaunchedEffect(Unit) { viewModel.startFromHome(fixedIds) }
 
     if (uiState.isIntroVisible) {
-        TodayMissionIntroScreen(onConfirm = viewModel::onIntroConfirm, modifier = modifier)
+        TodayMissionIntroScreen(
+            onConfirm = {
+                Analytics.track(AppEvent.MissionStart.START_TAPPED)
+                viewModel.onIntroConfirm()
+            },
+            modifier = modifier,
+        )
         return
     }
 
     TodayMissionContent(
         uiState = uiState,
-        onRetryClick = viewModel::onRetryClick,
+        onRetryClick = {
+            Analytics.track(AppEvent.MissionList.REFRESH_TAPPED)
+            viewModel.onRetryClick()
+        },
         onFilterClick = viewModel::onFilterClick,
         onMissionClick = viewModel::onMissionClick,
-        onCompleteClick = { viewModel.onCompleteClick { onCompleted() } },
-        onCloseClick = onClose,
+        onCompleteClick = {
+            trackComplete(uiState)
+            viewModel.onCompleteClick { onCompleted() }
+        },
+        onCloseClick = {
+            Analytics.track(AppEvent.MissionList.CLOSE_TAPPED)
+            onClose()
+        },
         onReloadClick = viewModel::onReloadClick,
         onErrorShown = viewModel::onErrorShown,
         modifier = modifier,
     )
+}
+
+/**
+ * 선택 완료를 누른 순간을 남깁니다. 저장 성공 여부와 상관없이 누른 것 자체를 셉니다. (iOS 와 동일)
+ * 고른 미션마다 난이도를 한 번씩 더 보냅니다.
+ */
+private fun trackComplete(uiState: TodayMissionUiState) {
+    Analytics.track(AppEvent.MissionList.COMPLETE_TAPPED)
+    uiState.missions
+        .filter { uiState.isSelected(it.id) }
+        .forEach { mission ->
+            Analytics.track(
+                AppEvent.MissionList.SELECTED_MISSION_DIFFICULTY,
+                mapOf("difficulty" to mission.difficultyValue),
+            )
+        }
 }
 
 @Composable

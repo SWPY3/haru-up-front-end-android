@@ -310,6 +310,7 @@ class TodayMissionViewModel @Inject constructor(
         description = missionDescription,
         difficulty = MissionDifficulty.from(difficulty),
         expEarned = expEarned,
+        difficultyValue = difficulty,
     )
 
     companion object {

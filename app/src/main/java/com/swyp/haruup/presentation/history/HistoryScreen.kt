@@ -17,6 +17,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.swyp.haruup.core.analytics.Analytics
+import com.swyp.haruup.core.analytics.AppEvent
 import com.swyp.haruup.core.designsystem.HaruUpColor
 import com.swyp.haruup.core.designsystem.HaruUpTheme
 import com.swyp.haruup.core.designsystem.HaruUpType
@@ -47,9 +49,18 @@ fun HistoryScreen(
 
     HistoryContent(
         uiState = uiState,
-        onPreviousClick = viewModel::onPreviousMonthClick,
-        onNextClick = viewModel::onNextMonthClick,
-        onDayClick = viewModel::onDayClick,
+        onPreviousClick = {
+            Analytics.track(AppEvent.Record.PREV_MONTH_TAPPED)
+            viewModel.onPreviousMonthClick()
+        },
+        onNextClick = {
+            Analytics.track(AppEvent.Record.NEXT_MONTH_TAPPED)
+            viewModel.onNextMonthClick()
+        },
+        onDayClick = { day ->
+            Analytics.track(AppEvent.Record.DATE_CELL_SELECTED)
+            viewModel.onDayClick(day)
+        },
         modifier = modifier,
     )
 }

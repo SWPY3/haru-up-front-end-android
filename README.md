@@ -121,13 +121,17 @@ NAVER_CLIENT_SECRET=발급받은_클라이언트_시크릿
 키가 없으면 앱은 그대로 돌아가고, 그 버튼만 "아직 준비되지 않았어요" 로 안내합니다.
 빈 키로 SDK 를 초기화하면 앱 전체가 뜨지 않아 초기화 자체를 건너뜁니다.
 
-**아직 남은 SDK**
+**분석 · 광고 · 푸시 SDK** — 코드는 iOS 와 같게 붙어 있고, 키나 파일이 없으면 그 기능만 꺼진 채로 앱이 돕니다.
 
-| SDK | 필요한 작업 |
-|-----|------------|
-| Firebase FCM | `google-services.json` 배치(gitignore 처리됨), 플러그인 추가 |
-| Amplitude | API 키 발급 |
-| AdMob | 앱 ID 발급 (마이페이지 배너) |
+| SDK | 넣을 것 | 없을 때 |
+|-----|--------|--------|
+| Amplitude | `local.properties` 에 `AMPLITUDE_API_KEY` (iOS 와 같은 프로젝트 키를 써도 됩니다) | 이벤트를 보내지 않음 |
+| AdMob | `local.properties` 에 `ADMOB_APP_ID`, `ADMOB_BANNER_UNIT_ID` (**Android 앱용으로 따로 발급**, iOS ID 는 쓸 수 없음) | Google 테스트 광고가 나옴 |
+| Firebase FCM | Firebase 콘솔에서 Android 앱(`com.swyp.haruup`)을 등록하고 `app/google-services.json` 배치 | 푸시 토큰을 등록하지 않음 |
+
+- 이벤트 이름은 iOS `AnalyticsManager` 와 글자까지 같습니다. (`AnalyticsTest` 가 확인)
+- 광고 동의(UMP)는 iOS 처럼 로그인 화면에서 받고, 배너는 홈 목록 맨 아래와 마이페이지 메뉴 아래에 있습니다.
+- 푸시 토큰은 로그인 직후와 토큰이 바뀔 때 `api/notifications/token` 으로 보냅니다. 알림 data 의 `type` 이 `home` 이면 홈 탭으로 갑니다.
 
 **2. 디자인 리소스 이관** — ✅ 완료
 

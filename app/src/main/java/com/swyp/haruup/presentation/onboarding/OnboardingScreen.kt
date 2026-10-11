@@ -15,17 +15,23 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.swyp.haruup.core.analytics.Analytics
+import com.swyp.haruup.core.analytics.AppEvent
 import com.swyp.haruup.core.designsystem.HaruUpColor
 import com.swyp.haruup.core.designsystem.HaruUpTheme
 import com.swyp.haruup.core.designsystem.HaruUpType
 import com.swyp.haruup.presentation.onboarding.component.OnboardingPageContent
 import com.swyp.haruup.presentation.onboarding.component.PageIndicator
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 
 private val PAGER_TO_INDICATOR = 14.dp
@@ -52,6 +58,14 @@ fun OnboardingScreen(
     val scope = rememberCoroutineScope()
 
     val isLastPage = pagerState.currentPage == pages.lastIndex
+
+    // 페이지가 멈춰 설 때마다 남깁니다. iOS 는 스와이프든 "다음" 버튼이든 스크롤이 끝나면 보내므로 똑같이 둘 다 셉니다.
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.settledPage }
+            .distinctUntilChanged()
+            .drop(1)
+            .collect { page -> Analytics.track(AppEvent.Onboarding.SWIPE_PAGE, mapOf("page" to page)) }
+    }
 
     Column(
         modifier = modifier
@@ -82,8 +96,10 @@ fun OnboardingScreen(
         Button(
             onClick = {
                 if (isLastPage) {
+                    Analytics.track(AppEvent.Onboarding.COMPLETE)
                     onFinished()
                 } else {
+                    Analytics.track(AppEvent.Onboarding.NEXT_TAPPED, mapOf("page" to pagerState.currentPage))
                     scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
                 }
             },

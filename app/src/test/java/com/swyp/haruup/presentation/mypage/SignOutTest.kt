@@ -21,7 +21,12 @@ class SignOutTest {
     @get:Rule
     val dispatcherRule = MainDispatcherRule()
 
-    private fun storage() = FakeTokenStorage(accessToken = "access", refreshToken = "refresh")
+    private fun storage() = FakeTokenStorage(
+        accessToken = "access",
+        refreshToken = "refresh",
+        memberId = "42",
+        onboardingCompleted = true,
+    )
 
     @Test
     fun `로그아웃은 refreshToken 을 실어 보내고 토큰을 지운다`() = runTest {
@@ -75,5 +80,31 @@ class SignOutTest {
 
         assertEquals(listOf(WithdrawRequest(password = "")), service.withdrawRequests)
         assertEquals(MyPageDialog.WithdrawSuccess, vm.uiState.value.dialog)
+    }
+
+    @Test
+    fun `로그아웃은 온보딩 기록을 남긴다`() = runTest {
+        // 지우면 같은 계정으로 다시 로그인해도 큐레이션을 처음부터 해야 합니다. (iOS clearForLogout 과 동일)
+        val storage = storage()
+        val vm = MyPageViewModel(FakeAuthService(), storage)
+
+        vm.onLogoutConfirm {}
+        advanceUntilIdle()
+
+        assertNull(storage.getRefreshToken())
+        assertTrue(storage.isOnboardingCompleted())
+        assertEquals("42", storage.getMemberId())
+    }
+
+    @Test
+    fun `탈퇴는 온보딩 기록까지 모두 지운다`() = runTest {
+        val storage = storage()
+        val vm = MyPageViewModel(FakeAuthService(), storage)
+
+        vm.onWithdrawConfirm()
+        advanceUntilIdle()
+
+        assertNull(storage.getAccessToken())
+        assertFalse(storage.isOnboardingCompleted())
     }
 }

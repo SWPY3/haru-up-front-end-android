@@ -10,6 +10,7 @@ import com.swyp.haruup.network.service.InterestService
 import com.swyp.haruup.network.service.JobService
 import com.swyp.haruup.network.service.MemberService
 import com.swyp.haruup.network.service.MissionService
+import com.swyp.haruup.network.service.NotificationService
 import com.swyp.haruup.network.service.ProfileService
 import com.swyp.haruup.network.service.TokenReissueService
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
@@ -128,6 +129,11 @@ object NetworkModule {
     @Singleton
     fun provideJobService(retrofit: Retrofit): JobService =
         retrofit.create(JobService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideNotificationService(retrofit: Retrofit): NotificationService =
+        retrofit.create(NotificationService::class.java)
 
     @Provides
     @Singleton

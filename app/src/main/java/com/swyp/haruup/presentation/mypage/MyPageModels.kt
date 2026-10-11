@@ -1,5 +1,7 @@
 package com.swyp.haruup.presentation.mypage
 
+import com.swyp.haruup.core.analytics.AppEvent
+
 /**
  * 마이페이지 메뉴 목록. iOS 의 menuStackView 에 담기는 MyPageMenuButton 들과 같은 순서입니다.
  *
@@ -35,6 +37,18 @@ enum class MyPageMenu(
     LOGOUT(title = "로그아웃", hasArrow = false),
     WITHDRAW(title = "탈퇴하기", hasArrow = false, isDestructive = true),
 }
+
+/** 메뉴를 눌렀을 때 보내는 이벤트. iOS MyPageViewController 의 버튼별 이벤트와 같습니다. */
+val MyPageMenu.analyticsEvent: AppEvent.MyPage
+    get() = when (this) {
+        MyPageMenu.FEEDBACK -> AppEvent.MyPage.LEAVE_FEEDBACK_TAPPED
+        MyPageMenu.INQUIRY -> AppEvent.MyPage.CONTACT_US_TAPPED
+        MyPageMenu.NOTIFICATION_SETTING -> AppEvent.MyPage.NOTIFICATION_SETTINGS_TAPPED
+        MyPageMenu.TERMS -> AppEvent.MyPage.TERMS_OF_SERVICE_TAPPED
+        MyPageMenu.PRIVACY_POLICY -> AppEvent.MyPage.PRIVACY_POLICY_TAPPED
+        MyPageMenu.LOGOUT -> AppEvent.MyPage.LOGOUT_TAPPED
+        MyPageMenu.WITHDRAW -> AppEvent.MyPage.WITHDRAW_TAPPED
+    }
 
 /** 마이페이지에서 띄우는 알림창입니다. 한 번에 하나만 뜹니다. */
 sealed interface MyPageDialog {

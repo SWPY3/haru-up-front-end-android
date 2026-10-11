@@ -31,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.swyp.haruup.R
+import com.swyp.haruup.core.analytics.Analytics
+import com.swyp.haruup.core.analytics.AppEvent
 import com.swyp.haruup.core.component.HaruUpToast
 import com.swyp.haruup.core.designsystem.HaruUpColor
 import com.swyp.haruup.core.designsystem.HaruUpTheme
@@ -68,18 +70,48 @@ fun AgreeScreen(
 
     AgreeContent(
         uiState = uiState,
-        onBackClick = onBackClick,
-        onAllClick = viewModel::onAllClick,
-        onTermClick = viewModel::onTermClick,
-        onTermDetailClick = { url ->
+        onBackClick = {
+            Analytics.track(AppEvent.Agree.BACK_TAPPED)
+            onBackClick()
+        },
+        onAllClick = {
+            Analytics.track(AppEvent.Agree.ALL_CHECK_TAPPED)
+            viewModel.onAllClick()
+        },
+        onTermClick = { term ->
+            Analytics.track(term.checkEvent)
+            viewModel.onTermClick(term)
+        },
+        onTermDetailClick = { term ->
+            term.detailEvent?.let(Analytics::track)
+            val url = term.url ?: return@AgreeContent
             if (!context.openExternalLink(url)) toastMessage = LINK_OPEN_FAILED_MESSAGE
         },
-        onAgreed = onAgreed,
+        onAgreed = {
+            Analytics.track(AppEvent.Agree.CONFIRM_TAPPED)
+            onAgreed()
+        },
         toastMessage = toastMessage,
         onToastShown = { toastMessage = null },
         modifier = modifier,
     )
 }
+
+/** 약관별 이벤트. iOS 는 위에서부터 Term1, Term2, Term3 으로 부릅니다. */
+private val TermType.checkEvent: AppEvent
+    get() = when (this) {
+        TermType.SERVICE -> AppEvent.Agree.TERM1_CHECK_TAPPED
+        TermType.PRIVACY -> AppEvent.Agree.TERM2_CHECK_TAPPED
+        TermType.AGE -> AppEvent.Agree.TERM3_CHECK_TAPPED
+    }
+
+/** 원문 링크는 앞의 두 약관에만 있습니다. */
+private val TermType.detailEvent: AppEvent?
+    get() = when (this) {
+        TermType.SERVICE -> AppEvent.Agree.TERM1_DETAIL_TAPPED
+        TermType.PRIVACY -> AppEvent.Agree.TERM2_DETAIL_TAPPED
+        TermType.AGE -> null
+    }
 
 @Composable
 private fun AgreeContent(
@@ -87,7 +119,7 @@ private fun AgreeContent(
     onBackClick: () -> Unit,
     onAllClick: () -> Unit,
     onTermClick: (TermType) -> Unit,
-    onTermDetailClick: (String) -> Unit,
+    onTermDetailClick: (TermType) -> Unit,
     onAgreed: () -> Unit,
     modifier: Modifier = Modifier,
     toastMessage: String? = null,
@@ -155,7 +187,7 @@ private fun AgreeContent(
                     isChecked = uiState.isChecked(term),
                     onCheckClick = { onTermClick(term) },
                     textStyle = HaruUpType.body4,
-                    onArrowClick = term.url?.let { url -> { onTermDetailClick(url) } },
+                    onArrowClick = term.url?.let { { onTermDetailClick(term) } },
                 )
             }
         }

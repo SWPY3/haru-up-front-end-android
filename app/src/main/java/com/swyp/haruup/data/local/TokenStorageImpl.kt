@@ -29,6 +29,7 @@ class TokenStorageImpl @Inject constructor(
     private val onboardingMemberIdKey = stringPreferencesKey("onboarding_member_id")
 
     private val lastMissionIntroDateKey = stringPreferencesKey("last_mission_intro_date")
+    private val sentPushTokenKey = stringPreferencesKey("sent_push_token")
 
     override suspend fun getAccessToken(): String? =
         context.dataStore.data.first()[accessTokenKey]
@@ -99,6 +100,12 @@ class TokenStorageImpl @Inject constructor(
 
     override suspend fun setLastMissionIntroDate(date: String) {
         context.dataStore.edit { it[lastMissionIntroDateKey] = date }
+    }
+
+    override suspend fun getSentPushToken(): String? = context.dataStore.data.first()[sentPushTokenKey]
+
+    override suspend fun setSentPushToken(token: String) {
+        context.dataStore.edit { it[sentPushTokenKey] = token }
     }
 
     override suspend fun clear() {

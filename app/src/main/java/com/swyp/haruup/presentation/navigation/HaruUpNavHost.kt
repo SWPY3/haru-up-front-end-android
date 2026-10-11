@@ -212,6 +212,7 @@ private fun NavGraphBuilder.curationGraph(navController: NavHostController) {
                         description = mission.missionDescription,
                         difficulty = MissionDifficulty.from(mission.difficulty),
                         expEarned = mission.expEarned,
+                        difficultyValue = mission.difficulty,
                     )
                 },
                 onCompleted = {

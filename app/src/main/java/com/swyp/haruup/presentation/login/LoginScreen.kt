@@ -1,5 +1,6 @@
 package com.swyp.haruup.presentation.login
 
+import android.app.Activity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,6 +26,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.swyp.haruup.R
+import com.swyp.haruup.core.ads.AdConsent
+import com.swyp.haruup.core.analytics.Analytics
+import com.swyp.haruup.core.analytics.AppEvent
 import com.swyp.haruup.core.component.HaruUpToast
 import com.swyp.haruup.data.model.SocialLoginProvider
 import com.swyp.haruup.core.designsystem.HaruUpColor
@@ -53,6 +58,11 @@ fun LoginScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
+    // iOS 는 로그인 화면이 처음 보일 때 광고 동의를 받고 광고 SDK 를 시작합니다. 같은 자리에서 합니다.
+    LaunchedEffect(Unit) {
+        (context as? Activity)?.let(AdConsent::requestAndInitialize)
+    }
+
     val login = { provider: SocialLoginProvider ->
         viewModel.onLoginClick(context, provider) { destination ->
             when (destination) {
@@ -63,8 +73,14 @@ fun LoginScreen(
     }
 
     LoginContent(
-        onKakaoLoginClick = { login(SocialLoginProvider.KAKAO) },
-        onNaverLoginClick = { login(SocialLoginProvider.NAVER) },
+        onKakaoLoginClick = {
+            Analytics.track(AppEvent.Login.KAKAO_LOGIN_TAPPED)
+            login(SocialLoginProvider.KAKAO)
+        },
+        onNaverLoginClick = {
+            Analytics.track(AppEvent.Login.NAVER_LOGIN_TAPPED)
+            login(SocialLoginProvider.NAVER)
+        },
         errorMessage = uiState.errorMessage,
         onErrorShown = viewModel::onErrorShown,
         isLoading = uiState.isLoading,

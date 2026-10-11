@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.swyp.haruup.data.local.TokenStorage
 import com.swyp.haruup.data.model.SnsLoginRequest
 import com.swyp.haruup.data.model.SocialLoginProvider
+import com.swyp.haruup.data.push.PushTokenRegistrar
 import com.swyp.haruup.data.social.SocialAccount
 import com.swyp.haruup.data.social.SocialLoginClient
 import com.swyp.haruup.network.service.AuthService
@@ -35,6 +36,7 @@ class LoginViewModel @Inject constructor(
     private val socialLoginClient: SocialLoginClient,
     private val authService: AuthService,
     private val tokenStorage: TokenStorage,
+    private val pushTokenRegistrar: PushTokenRegistrar,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
@@ -106,6 +108,9 @@ class LoginViewModel @Inject constructor(
 
         // 지난번과 다른 계정이면 큐레이션을 다시 시킵니다.
         tokenStorage.clearOnboardingIfDifferentUser(memberId)
+
+        // 푸시 토큰을 이 계정으로 등록합니다. 실패해도 로그인은 그대로 진행합니다. (iOS 와 동일)
+        pushTokenRegistrar.registerAfterLoginInBackground()
 
         return destinationFor(tokenStorage.isOnboardingCompleted())
     }

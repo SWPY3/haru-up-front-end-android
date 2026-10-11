@@ -92,5 +92,8 @@ object ApiPath {
         const val DETAIL_LIST = "api/job/getJobDetailList"
     }
 
-    // TODO: Notification / Ad 경로 이관
+    object Notification {
+        /** 푸시 토큰 등록. 같은 기기로 다시 보내면 서버가 덮어씁니다. */
+        const val REGISTER_TOKEN = "api/notifications/token"
+    }
 }

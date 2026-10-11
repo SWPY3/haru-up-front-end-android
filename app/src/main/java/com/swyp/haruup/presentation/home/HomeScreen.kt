@@ -1,20 +1,27 @@
 package com.swyp.haruup.presentation.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.swyp.haruup.core.ads.BannerAd
+import com.swyp.haruup.core.analytics.Analytics
+import com.swyp.haruup.core.analytics.AppEvent
 import com.swyp.haruup.core.designsystem.HaruUpColor
 import com.swyp.haruup.core.designsystem.HaruUpTheme
 import com.swyp.haruup.presentation.home.component.AddMissionRow
@@ -33,6 +40,7 @@ import com.swyp.haruup.presentation.mission.MissionItem
 private val HEADER_TO_SECTION = 28.dp
 private val LIST_BOTTOM_PADDING = 40.dp
 private val EMPTY_TO_ADD_SPACING = 16.dp
+private val BANNER_V_PADDING = 8.dp
 
 /**
  * 메인 탭의 홈. iOS 의 HomeViewController 에 대응합니다.
@@ -56,28 +64,59 @@ fun HomeScreen(
 
     HomeContent(
         uiState = uiState,
-        onBubbleClick = viewModel::onBubbleClick,
-        onInfoClick = viewModel::onInfoClick,
-        onChallengeClick = viewModel::onChallengeClick,
-        onMissionSettingClick = viewModel::onMissionSettingClick,
+        onBubbleClick = {
+            Analytics.track(AppEvent.Home.SPEECH_BUBBLE_TAPPED)
+            viewModel.onBubbleClick()
+        },
+        onCharacterClick = {
+            Analytics.track(AppEvent.Home.CHARACTER_TAPPED)
+            viewModel.onBubbleClick()
+        },
+        onInfoClick = {
+            Analytics.track(AppEvent.Home.TODAY_MISSION_INFO_TAPPED)
+            viewModel.onInfoClick()
+        },
+        onChallengeClick = {
+            Analytics.track(AppEvent.Home.STREAK_BUTTON_TAPPED)
+            viewModel.onChallengeClick()
+        },
+        onMissionSettingClick = { mission ->
+            Analytics.track(AppEvent.Home.MISSION_RESULT_TAPPED)
+            viewModel.onMissionSettingClick(mission)
+        },
         // 처음 고를 때는 빈 목록을, 더할 때는 오늘 고른 미션을 넘깁니다. 넘긴 미션은 추천에서 빠집니다.
-        onAddMissionClick = { onSelectMissionClick(uiState.todayMissions.map { it.id }) },
+        onAddMissionClick = {
+            Analytics.track(AppEvent.Home.ADD_MISSION_TAPPED)
+            onSelectMissionClick(uiState.todayMissions.map { it.id })
+        },
         modifier = modifier,
     )
 
     uiState.actionSheetMission?.let { mission ->
         MissionActionSheet(
             missionTitle = mission.content,
-            onCompleteClick = viewModel::onCompleteClick,
-            onDeleteClick = viewModel::onDeleteClick,
+            onCompleteClick = {
+                Analytics.track(AppEvent.Home.COMPLETE_MISSION_TAPPED)
+                viewModel.onCompleteClick()
+            },
+            onDeleteClick = {
+                Analytics.track(AppEvent.Home.DELETE_MISSION_TAPPED)
+                viewModel.onDeleteClick()
+            },
             onDismiss = viewModel::onActionSheetDismiss,
         )
     }
 
     uiState.deleteConfirmMission?.let {
         MissionDeleteConfirmSheet(
-            onDelete = viewModel::onDeleteConfirm,
-            onCancel = viewModel::onDeleteCancel,
+            onDelete = {
+                Analytics.track(AppEvent.Home.CONFIRM_DELETE_TAPPED)
+                viewModel.onDeleteConfirm()
+            },
+            onCancel = {
+                Analytics.track(AppEvent.Home.CANCEL_DELETE_TAPPED)
+                viewModel.onDeleteCancel()
+            },
         )
     }
 
@@ -98,6 +137,7 @@ fun HomeScreen(
 private fun HomeContent(
     uiState: HomeUiState,
     onBubbleClick: () -> Unit,
+    onCharacterClick: () -> Unit,
     onInfoClick: () -> Unit,
     onChallengeClick: () -> Unit,
     onMissionSettingClick: (MissionItem) -> Unit,
@@ -117,6 +157,7 @@ private fun HomeContent(
                 challengeDay = uiState.challengeDay,
                 isDaytime = HomeViewModel.isDaytime(),
                 onBubbleClick = onBubbleClick,
+                onCharacterClick = onCharacterClick,
                 onChallengeClick = onChallengeClick,
             )
             Spacer(Modifier.height(HEADER_TO_SECTION))
@@ -149,6 +190,18 @@ private fun HomeContent(
                 }
             }
         }
+
+        // iOS 는 목록 맨 아래(tableFooterView)에 배너를 위아래 8 씩 띄워 붙입니다.
+        item(key = "banner") {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = BANNER_V_PADDING),
+                contentAlignment = Alignment.Center,
+            ) {
+                BannerAd()
+            }
+        }
     }
 }
 
@@ -178,7 +231,8 @@ private fun HomePreview() {
                 todayMissions = previewMissions,
                 completedMissionIds = setOf(3),
             ),
-            onBubbleClick = {}, onInfoClick = {}, onChallengeClick = {}, onMissionSettingClick = {},
+            onBubbleClick = {}, onCharacterClick = {}, onInfoClick = {}, onChallengeClick = {},
+            onMissionSettingClick = {},
             onAddMissionClick = {},
         )
     }
@@ -190,7 +244,8 @@ private fun HomeEmptyPreview() {
     HaruUpTheme {
         HomeContent(
             uiState = HomeUiState(memberInfo = previewMemberInfo, isTooltipVisible = true),
-            onBubbleClick = {}, onInfoClick = {}, onChallengeClick = {}, onMissionSettingClick = {},
+            onBubbleClick = {}, onCharacterClick = {}, onInfoClick = {}, onChallengeClick = {},
+            onMissionSettingClick = {},
             onAddMissionClick = {},
         )
     }

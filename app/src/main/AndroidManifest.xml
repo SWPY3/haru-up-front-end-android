@@ -14,6 +14,11 @@
         android:supportsRtl="false"
         android:theme="@style/Theme.HaruUp">
 
+        <!-- 광고 앱 ID. build.gradle.kts 가 local.properties 값(없으면 Google 테스트 ID)으로 채웁니다. -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${admobAppId}" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -24,6 +29,19 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- 앱이 뒤에 있을 때 시스템이 띄우는 알림의 채널. 앱 시작 때 같은 이름으로 만듭니다. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="haruup_default" />
+
+        <service
+            android:name=".data.push.HaruUpMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
 
         <!--
             카카오톡으로 로그인한 뒤 앱으로 돌아올 때 받는 창입니다.

@@ -61,6 +61,11 @@ data class MissionItem(
     val description: String? = null,
     val difficulty: MissionDifficulty,
     val expEarned: Int,
+    /**
+     * 서버가 준 난이도 숫자 그대로. 화면에서는 [difficulty] 를 쓰고, 이 값은 분석 이벤트에만 씁니다.
+     * iOS 가 미션 선택 이벤트에 원래 숫자를 보내서 맞춰 둡니다. (3 과 4 는 둘 다 "고급" 이라 되돌릴 수 없습니다)
+     */
+    val difficultyValue: Int = 0,
 )
 
 /**
@@ -73,4 +78,5 @@ fun com.swyp.haruup.data.model.MissionListItem.toMissionItem(): MissionItem = Mi
     description = missionDescription,
     difficulty = MissionDifficulty.from(difficulty),
     expEarned = expEarned,
+    difficultyValue = difficulty,
 )

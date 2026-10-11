@@ -12,6 +12,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -19,6 +20,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.swyp.haruup.core.ads.BannerAd
+import com.swyp.haruup.core.analytics.Analytics
+import com.swyp.haruup.core.analytics.AppEvent
 import com.swyp.haruup.core.component.HaruUpConfirmDialog
 import com.swyp.haruup.core.component.HaruUpNoticeDialog
 import com.swyp.haruup.core.designsystem.HaruUpColor
@@ -32,7 +36,8 @@ private val H_MARGIN = 20.dp
 private val TITLE_TOP = 20.dp
 private val TITLE_TO_PROFILE = 30.dp
 private val PROFILE_TO_MENU = 24.dp
-private val MENU_TO_VERSION = 30.dp
+/** iOS: 메뉴 → 배너 15, 배너 → 버전 15 */
+private val AROUND_BANNER = 15.dp
 private val VERSION_LEADING = 20.dp
 private val CONTENT_BOTTOM = 40.dp
 
@@ -61,8 +66,12 @@ fun MyPageScreen(
 
     MyPageContent(
         uiState = uiState,
-        onEditProfileClick = onEditProfileClick,
+        onEditProfileClick = {
+            Analytics.track(AppEvent.MyPage.EDIT_PROFILE_TAPPED)
+            onEditProfileClick()
+        },
         onMenuClick = { menu ->
+            Analytics.track(menu.analyticsEvent)
             when {
                 menu.url != null ->
                     if (!context.openExternalLink(menu.url)) viewModel.onLinkOpenFailed()
@@ -78,8 +87,22 @@ fun MyPageScreen(
     MyPageDialogHost(
         dialog = uiState.dialog,
         onDismiss = viewModel::onDialogDismiss,
-        onLogoutConfirm = { viewModel.onLogoutConfirm(onSignedOut) },
-        onWithdrawConfirm = viewModel::onWithdrawConfirm,
+        onLogoutConfirm = {
+            Analytics.track(AppEvent.MyPage.LOGOUT_CONFIRM_TAPPED)
+            viewModel.onLogoutConfirm(onSignedOut)
+        },
+        onLogoutCancel = {
+            Analytics.track(AppEvent.MyPage.LOGOUT_CANCEL_TAPPED)
+            viewModel.onDialogDismiss()
+        },
+        onWithdrawConfirm = {
+            Analytics.track(AppEvent.MyPage.WITHDRAW_CONFIRM_TAPPED)
+            viewModel.onWithdrawConfirm()
+        },
+        onWithdrawCancel = {
+            Analytics.track(AppEvent.MyPage.WITHDRAW_CANCEL_TAPPED)
+            viewModel.onDialogDismiss()
+        },
         onWithdrawSuccessConfirm = { viewModel.onWithdrawSuccessConfirm(onSignedOut) },
     )
 }
@@ -123,7 +146,12 @@ private fun MyPageContent(
             modifier = Modifier.padding(horizontal = H_MARGIN),
         )
 
-        Spacer(Modifier.height(MENU_TO_VERSION))
+        Spacer(Modifier.height(AROUND_BANNER))
+
+        // iOS 와 같이 메뉴와 버전 사이에 배너를 둡니다.
+        BannerAd(modifier = Modifier.align(Alignment.CenterHorizontally))
+
+        Spacer(Modifier.height(AROUND_BANNER))
 
         Text(
             text = uiState.versionText,
@@ -140,7 +168,9 @@ private fun MyPageDialogHost(
     dialog: MyPageDialog?,
     onDismiss: () -> Unit,
     onLogoutConfirm: () -> Unit,
+    onLogoutCancel: () -> Unit,
     onWithdrawConfirm: () -> Unit,
+    onWithdrawCancel: () -> Unit,
     onWithdrawSuccessConfirm: () -> Unit,
 ) {
     when (dialog) {
@@ -152,7 +182,7 @@ private fun MyPageDialogHost(
             confirmText = "예",
             cancelText = "아니오",
             onConfirm = onLogoutConfirm,
-            onCancel = onDismiss,
+            onCancel = onLogoutCancel,
         )
 
         MyPageDialog.Withdraw -> HaruUpConfirmDialog(
@@ -161,7 +191,7 @@ private fun MyPageDialogHost(
             confirmText = "탈퇴하기",
             cancelText = "취소",
             onConfirm = onWithdrawConfirm,
-            onCancel = onDismiss,
+            onCancel = onWithdrawCancel,
         )
 
         MyPageDialog.WithdrawSuccess -> HaruUpNoticeDialog(

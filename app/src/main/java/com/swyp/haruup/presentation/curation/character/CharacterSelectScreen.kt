@@ -31,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.swyp.haruup.R
+import com.swyp.haruup.core.analytics.Analytics
+import com.swyp.haruup.core.analytics.AppEvent
 import com.swyp.haruup.core.designsystem.HaruUpColor
 import com.swyp.haruup.core.designsystem.HaruUpTheme
 import com.swyp.haruup.core.designsystem.HaruUpType
@@ -63,10 +65,23 @@ fun CharacterSelectScreen(
 
     CharacterSelectContent(
         uiState = uiState,
-        onPreviousClick = viewModel::onPreviousClick,
-        onNextCharacterClick = viewModel::onNextClick,
-        onCharacterClick = viewModel::onCharacterClick,
-        onConfirmClick = { onNextClick(uiState.selected.id) },
+        onPreviousClick = {
+            Analytics.track(AppEvent.CharacterSelect.LEFT_ARROW_TAPPED)
+            viewModel.onPreviousClick()
+        },
+        onNextCharacterClick = {
+            Analytics.track(AppEvent.CharacterSelect.RIGHT_ARROW_TAPPED)
+            viewModel.onNextClick()
+        },
+        onCharacterClick = {
+            Analytics.track(AppEvent.CharacterSelect.CHARACTER_IMAGE_TAPPED)
+            viewModel.onCharacterClick()
+        },
+        onConfirmClick = {
+            // iOS 와 같이 화면에 보이는 이름(서버 이름이 있으면 그것)을 보냅니다.
+            Analytics.track(AppEvent.CharacterSelect.NEXT_TAPPED, mapOf("character" to uiState.displayName))
+            onNextClick(uiState.selected.id)
+        },
         modifier = modifier,
     )
 }

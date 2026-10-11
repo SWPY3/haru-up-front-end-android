@@ -3,6 +3,8 @@ package com.swyp.haruup
 import android.app.Application
 import com.kakao.sdk.common.KakaoSdk
 import com.navercorp.nid.NaverIdLoginSDK
+import com.swyp.haruup.core.analytics.Analytics
+import com.swyp.haruup.data.push.HaruUpMessagingService
 import dagger.hilt.android.HiltAndroidApp
 
 /**
@@ -31,6 +33,9 @@ class HaruUpApplication : Application() {
             )
         }
 
-        // TODO: FirebaseApp.initializeApp(this)
+        Analytics.init(this, BuildConfig.AMPLITUDE_API_KEY)
+
+        // 앱이 뒤에 있을 때 시스템이 띄우는 알림도 이 채널을 씁니다. (Manifest 의 기본 채널)
+        HaruUpMessagingService.createChannel(this)
     }
 }

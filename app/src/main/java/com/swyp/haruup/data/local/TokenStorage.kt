@@ -43,5 +43,10 @@ interface TokenStorage {
 
     suspend fun setLastMissionIntroDate(date: String)
 
+    /** 서버에 마지막으로 등록한 푸시 토큰. 토큰이 바뀌었을 때만 다시 보내려고 둡니다. */
+    suspend fun getSentPushToken(): String?
+
+    suspend fun setSentPushToken(token: String)
+
     suspend fun clear()
 }

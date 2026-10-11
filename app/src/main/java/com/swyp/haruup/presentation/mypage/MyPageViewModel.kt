@@ -98,6 +98,8 @@ class MyPageViewModel @Inject constructor(
                 val refreshToken = tokenStorage.getRefreshToken()
                 refreshToken.isNullOrBlank() || authService.logout(refreshToken).success
             },
+            // 로그아웃은 토큰만 지웁니다. 같은 계정으로 다시 들어오면 큐레이션을 건너뛰어야 합니다. (iOS clearForLogout)
+            clearLocal = { tokenStorage.clearTokens() },
             onSuccess = onSignedOut,
             failureMessage = "로그아웃에 실패했습니다.",
         )
@@ -107,6 +109,8 @@ class MyPageViewModel @Inject constructor(
     fun onWithdrawConfirm() {
         runSignOut(
             request = { authService.withdraw(WithdrawRequest()).success },
+            // 탈퇴는 온보딩 기록까지 모두 지웁니다. (iOS clearForWithdraw)
+            clearLocal = { tokenStorage.clear() },
             onSuccess = { _uiState.update { it.copy(dialog = MyPageDialog.WithdrawSuccess) } },
             failureMessage = "탈퇴에 실패했습니다.",
         )
@@ -126,6 +130,7 @@ class MyPageViewModel @Inject constructor(
      */
     private fun runSignOut(
         request: suspend () -> Boolean,
+        clearLocal: suspend () -> Unit,
         onSuccess: () -> Unit,
         failureMessage: String,
     ) {
@@ -137,7 +142,7 @@ class MyPageViewModel @Inject constructor(
             val succeeded = runCatching { request() }.getOrDefault(false)
 
             if (succeeded) {
-                tokenStorage.clear()
+                clearLocal()
                 _uiState.update { it.copy(dialog = null, isProcessing = false) }
                 onSuccess()
             } else {

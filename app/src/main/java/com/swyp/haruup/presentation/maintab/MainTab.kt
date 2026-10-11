@@ -2,6 +2,7 @@ package com.swyp.haruup.presentation.maintab
 
 import androidx.annotation.DrawableRes
 import com.swyp.haruup.R
+import com.swyp.haruup.core.analytics.AppEvent
 import com.swyp.haruup.presentation.navigation.TabRoute
 
 /**
@@ -38,3 +39,12 @@ enum class MainTab(
         selectedIcon = R.drawable.ic_tab_mypage_selected,
     ),
 }
+
+/** 탭을 눌렀을 때 보내는 이벤트. iOS 는 기록 탭을 "Record" 로 부릅니다. */
+val MainTab.analyticsEvent: AppEvent.Tab
+    get() = when (this) {
+        MainTab.HOME -> AppEvent.Tab.HOME_TAPPED
+        MainTab.HISTORY -> AppEvent.Tab.RECORD_TAPPED
+        MainTab.CHART -> AppEvent.Tab.CHART_TAPPED
+        MainTab.MY_PAGE -> AppEvent.Tab.MY_PAGE_TAPPED
+    }

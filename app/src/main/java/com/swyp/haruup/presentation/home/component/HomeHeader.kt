@@ -64,6 +64,8 @@ fun HomeHeader(
     onBubbleClick: () -> Unit,
     onChallengeClick: () -> Unit,
     modifier: Modifier = Modifier,
+    /** 캐릭터를 눌렀을 때. 말풍선과 같이 문구를 넘기지만 분석에서는 따로 셉니다. (iOS 와 동일) */
+    onCharacterClick: () -> Unit = onBubbleClick,
 ) {
     Box(modifier = modifier.fillMaxWidth()) {
 
@@ -125,7 +127,7 @@ fun HomeHeader(
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null,
-                                onClick = onBubbleClick,
+                                onClick = onCharacterClick,
                             ),
                     )
                 }
