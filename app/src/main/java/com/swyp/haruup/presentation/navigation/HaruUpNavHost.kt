@@ -176,9 +176,9 @@ private fun NavGraphBuilder.curationGraph(navController: NavHostController) {
             CurationChatScreen(
                 characterId = curationData.characterId ?: 1,
                 onCompleted = { nickname, missions ->
-                    curationViewModel.setChatResult(nickname, missions)
-                    // TODO: chatbotSetup 을 호출한 뒤 이동하도록 교체
-                    navController.navigate(CurationRoute.TODAY_MISSION)
+                    curationViewModel.completeChat(nickname, missions) {
+                        navController.navigate(CurationRoute.TODAY_MISSION)
+                    }
                 },
             )
         }
