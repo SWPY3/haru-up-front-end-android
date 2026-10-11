@@ -1,7 +1,9 @@
 package com.swyp.haruup.presentation.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -31,8 +33,23 @@ import com.swyp.haruup.presentation.onboarding.OnboardingScreen
 import com.swyp.haruup.presentation.splash.SplashScreen
 
 @Composable
-fun HaruUpNavHost() {
+fun HaruUpNavHost(
+    sessionViewModel: SessionViewModel = hiltViewModel(),
+) {
     val navController = rememberNavController()
+
+    // 토큰 재발급까지 실패하면 어느 화면에 있든 로그인으로 돌려보냅니다.
+    // 뒤로 가기로 돌아올 수 없어야 하므로 스택을 비웁니다.
+    LaunchedEffect(navController) {
+        sessionViewModel.sessionExpired.collect {
+            val current = navController.currentDestination?.route
+            if (current == Route.LOGIN || current == Route.SPLASH) return@collect
+
+            navController.navigate(Route.LOGIN) {
+                popUpTo(0) { inclusive = true }
+            }
+        }
+    }
 
     NavHost(navController = navController, startDestination = Route.SPLASH) {
 

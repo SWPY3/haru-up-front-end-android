@@ -14,6 +14,12 @@ interface TokenStorage {
 
     suspend fun saveTokens(accessToken: String, refreshToken: String)
 
+    /**
+     * 토큰만 지웁니다. 재발급까지 실패해 다시 로그인해야 할 때 씁니다.
+     * 온보딩 기록은 남겨 두어 같은 계정으로 다시 로그인하면 큐레이션을 건너뜁니다.
+     */
+    suspend fun clearTokens()
+
     suspend fun getMemberId(): String?
 
     suspend fun saveMemberId(memberId: String)

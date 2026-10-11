@@ -39,3 +39,13 @@ data class SnsLoginResponse(
     val snsId: String? = null,
     val status: String = "",
 )
+
+/**
+ * jwt-token-login 응답의 data 중 토큰만 꺼내 씁니다.
+ * 서버는 회원 정보 전체(MemberDto)를 주지만 재발급에는 토큰만 필요합니다.
+ */
+@Serializable
+data class TokenReissueResponse(
+    val accessToken: String,
+    val refreshToken: String,
+)

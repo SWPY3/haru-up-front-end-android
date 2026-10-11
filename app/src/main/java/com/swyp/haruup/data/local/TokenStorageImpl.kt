@@ -43,6 +43,13 @@ class TokenStorageImpl @Inject constructor(
         }
     }
 
+    override suspend fun clearTokens() {
+        context.dataStore.edit { prefs ->
+            prefs.remove(accessTokenKey)
+            prefs.remove(refreshTokenKey)
+        }
+    }
+
     override suspend fun getMemberId(): String? = context.dataStore.data.first()[memberIdKey]
 
     override suspend fun saveMemberId(memberId: String) {
@@ -67,9 +74,9 @@ class TokenStorageImpl @Inject constructor(
     /**
      * 로그인된 상태인지 봅니다.
      *
-     * iOS 는 만료 시각도 함께 보지만, 안드로이드는 아직 만료 시각을 저장하지 않습니다.
-     * 그래서 토큰이 있는지만 확인합니다. 만료된 토큰은 401 을 받고 걸러집니다.
-     * TODO: 토큰 만료 시각을 저장해 여기서도 확인하기 (AuthInterceptor 의 재발급 TODO 와 함께)
+     * iOS 는 만료 시각도 함께 보지만, 안드로이드는 만료 시각을 저장하지 않고 토큰이 있는지만 봅니다.
+     * 만료된 accessToken 은 AuthInterceptor 가 첫 요청에서 재발급받고,
+     * refreshToken 까지 만료됐다면 토큰을 지우고 로그인 화면으로 보냅니다.
      */
     override suspend fun isLoggedIn(): Boolean = !getAccessToken().isNullOrBlank()
 

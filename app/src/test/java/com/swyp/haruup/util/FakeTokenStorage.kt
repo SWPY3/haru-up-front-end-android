@@ -23,6 +23,11 @@ class FakeTokenStorage(
         this.refreshToken = refreshToken
     }
 
+    override suspend fun clearTokens() {
+        accessToken = null
+        refreshToken = null
+    }
+
     override suspend fun getMemberId(): String? = memberId
 
     override suspend fun saveMemberId(memberId: String) {

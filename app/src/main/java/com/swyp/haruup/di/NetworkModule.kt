@@ -10,6 +10,7 @@ import com.swyp.haruup.network.service.InterestService
 import com.swyp.haruup.network.service.MemberService
 import com.swyp.haruup.network.service.MissionService
 import com.swyp.haruup.network.service.ProfileService
+import com.swyp.haruup.network.service.TokenReissueService
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
 import dagger.Provides
@@ -21,6 +22,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import java.util.concurrent.TimeUnit
+import javax.inject.Named
 import javax.inject.Singleton
 
 @Module
@@ -37,23 +39,50 @@ object NetworkModule {
         explicitNulls = false
     }
 
+    private fun loggingInterceptor() = HttpLoggingInterceptor().apply {
+        level = if (BuildConfig.DEBUG) {
+            HttpLoggingInterceptor.Level.BODY
+        } else {
+            HttpLoggingInterceptor.Level.NONE
+        }
+    }
+
     @Provides
     @Singleton
     fun provideOkHttpClient(authInterceptor: AuthInterceptor): OkHttpClient =
         OkHttpClient.Builder()
             .addInterceptor(authInterceptor)
-            .addInterceptor(
-                HttpLoggingInterceptor().apply {
-                    level = if (BuildConfig.DEBUG) {
-                        HttpLoggingInterceptor.Level.BODY
-                    } else {
-                        HttpLoggingInterceptor.Level.NONE
-                    }
-                }
-            )
+            .addInterceptor(loggingInterceptor())
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .build()
+
+    /**
+     * 토큰 재발급 전용 클라이언트. AuthInterceptor 를 붙이지 않습니다.
+     * 붙이면 AuthInterceptor → TokenRefresher → 이 클라이언트 → AuthInterceptor 로 의존이 맴돕니다.
+     */
+    @Provides
+    @Singleton
+    @Named(REISSUE)
+    fun provideReissueRetrofit(json: Json): Retrofit =
+        Retrofit.Builder()
+            .baseUrl(BuildConfig.BASE_URL)
+            .client(
+                OkHttpClient.Builder()
+                    .addInterceptor(loggingInterceptor())
+                    .connectTimeout(30, TimeUnit.SECONDS)
+                    .readTimeout(30, TimeUnit.SECONDS)
+                    .build()
+            )
+            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+            .build()
+
+    @Provides
+    @Singleton
+    fun provideTokenReissueService(@Named(REISSUE) retrofit: Retrofit): TokenReissueService =
+        retrofit.create(TokenReissueService::class.java)
+
+    private const val REISSUE = "reissue"
 
     @Provides
     @Singleton

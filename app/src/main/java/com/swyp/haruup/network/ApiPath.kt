@@ -10,6 +10,12 @@ object ApiPath {
         const val SNS_LOGIN = "api/member/auth/sns-login"
         const val LOGOUT = "api/member/auth/logout"
         const val WITHDRAW = "api/member/account/withdraw"
+
+        /**
+         * refreshToken 으로 토큰을 다시 받습니다. jwt-token 헤더에 refreshToken 을 싣습니다.
+         * refreshToken 도 새로 바뀌어 오므로 둘 다 저장해야 합니다. (서버가 이전 것을 폐기합니다)
+         */
+        const val TOKEN_REISSUE = "api/member/auth/jwt-token-login"
     }
 
     object Chatbot {
