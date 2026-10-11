@@ -26,9 +26,10 @@ interface InterestService {
     @GET(ApiPath.Interest.MEMBER)
     suspend fun memberInterests(): MemberInterestResponse
 
+    /** data 에는 안내 문구가 문자열로 옵니다. Unit 으로 받으면 파싱이 깨집니다. */
     @PUT("${ApiPath.Interest.MEMBER}/{memberInterestId}")
     suspend fun updateMemberInterest(
         @Path("memberInterestId") memberInterestId: Int,
         @Body request: UpdateMemberInterestRequest,
-    ): ApiResponse<Unit>
+    ): ApiResponse<String>
 }

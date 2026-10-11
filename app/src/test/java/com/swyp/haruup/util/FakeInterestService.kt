@@ -27,5 +27,5 @@ class FakeInterestService(
     override suspend fun updateMemberInterest(
         memberInterestId: Int,
         request: UpdateMemberInterestRequest,
-    ): ApiResponse<Unit> = ApiResponse(success = true, data = Unit)
+    ): ApiResponse<String> = ApiResponse(success = true, data = "ok")
 }

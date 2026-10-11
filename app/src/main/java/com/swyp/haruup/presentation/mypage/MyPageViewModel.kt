@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.swyp.haruup.BuildConfig
 import com.swyp.haruup.data.local.TokenStorage
+import com.swyp.haruup.data.model.WithdrawRequest
 import com.swyp.haruup.network.service.AuthService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -80,12 +81,17 @@ class MyPageViewModel @Inject constructor(
     }
 
     /**
-     * 로그아웃합니다. iOS 와 달리 refreshToken 을 본문에 싣지 않고
-     * AuthInterceptor 가 붙이는 Authorization 헤더를 씁니다.
+     * 로그아웃합니다. 서버가 폐기할 refreshToken 을 jwt-token 헤더에 싣습니다. (iOS 와 동일)
+     *
+     * refreshToken 이 없으면 서버에 폐기할 세션도 없으므로 바로 나갑니다.
+     * 여기서 막으면 로그아웃할 방법이 없어집니다.
      */
     fun onLogoutConfirm(onSignedOut: () -> Unit) {
         runSignOut(
-            request = { authService.logout().success },
+            request = {
+                val refreshToken = tokenStorage.getRefreshToken()
+                refreshToken.isNullOrBlank() || authService.logout(refreshToken).success
+            },
             onSuccess = onSignedOut,
             failureMessage = "로그아웃에 실패했습니다.",
         )
@@ -94,7 +100,7 @@ class MyPageViewModel @Inject constructor(
     /** 탈퇴한 뒤에는 바로 나가지 않고 완료 알림을 먼저 띄웁니다. (iOS 와 동일) */
     fun onWithdrawConfirm() {
         runSignOut(
-            request = { authService.withdraw().success },
+            request = { authService.withdraw(WithdrawRequest()).success },
             onSuccess = { _uiState.update { it.copy(dialog = MyPageDialog.WithdrawSuccess) } },
             failureMessage = "탈퇴에 실패했습니다.",
         )

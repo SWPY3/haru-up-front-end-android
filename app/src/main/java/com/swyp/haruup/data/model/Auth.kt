@@ -49,3 +49,14 @@ data class TokenReissueResponse(
     val accessToken: String,
     val refreshToken: String,
 )
+
+/**
+ * POST /api/member/account/withdraw 요청 body.
+ *
+ * 비밀번호는 이메일 가입 계정만 확인합니다. SNS 계정은 빈 문자열을 보냅니다.
+ * 서버가 body 자체는 필수로 받아 빼면 400 이 납니다. (iOS 도 빈 문자열을 보냅니다)
+ */
+@Serializable
+data class WithdrawRequest(
+    val password: String = "",
+)
