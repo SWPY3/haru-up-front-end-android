@@ -7,6 +7,7 @@ import com.swyp.haruup.network.service.CharacterService
 import com.swyp.haruup.network.service.ChartService
 import com.swyp.haruup.network.service.ChatbotService
 import com.swyp.haruup.network.service.InterestService
+import com.swyp.haruup.network.service.JobService
 import com.swyp.haruup.network.service.MemberService
 import com.swyp.haruup.network.service.MissionService
 import com.swyp.haruup.network.service.ProfileService
@@ -122,6 +123,11 @@ object NetworkModule {
     @Singleton
     fun provideInterestService(retrofit: Retrofit): InterestService =
         retrofit.create(InterestService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideJobService(retrofit: Retrofit): JobService =
+        retrofit.create(JobService::class.java)
 
     @Provides
     @Singleton

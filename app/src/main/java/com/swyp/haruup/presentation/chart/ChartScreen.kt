@@ -143,6 +143,7 @@ private fun ChartContent(
 
     if (uiState.isFilterSheetVisible) {
         ChartFilterSheet(
+            sections = uiState.filterSections,
             initialTags = uiState.selectedTags,
             onApply = onFilterApplied,
             onDismiss = onFilterSheetDismiss,

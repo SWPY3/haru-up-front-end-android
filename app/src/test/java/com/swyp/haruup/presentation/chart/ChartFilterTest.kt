@@ -1,15 +1,29 @@
 package com.swyp.haruup.presentation.chart
 
+import com.swyp.haruup.data.model.JobDetail
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
  * 화면에서 고른 한글 태그가 랭킹 API 파라미터로 제대로 바뀌는지 확인합니다.
- * 매핑 테이블은 iOS 의 ChartViewModel 에서 옮겨 온 것이라 값이 어긋나면 두 앱의 결과가 달라집니다.
+ * 값은 서버(haru-up-back-end-2)의 AgeGroup / job 데이터에 맞춰야 합니다. 어긋나면 400 이나 엉뚱한 결과가 나옵니다.
  */
 class ChartFilterTest {
+
+    /** 서버 seed(scripts/job.sql) 일부와 같은 모양 */
+    private val jobDetails = ChartFilter.groupJobDetails(
+        listOf(
+            JobDetail(id = 1, jobId = 1, jobDetailName = "사무직"),
+            JobDetail(id = 2, jobId = 1, jobDetailName = "IT/개발자"),
+            JobDetail(id = 7, jobId = 2, jobDetailName = "카페/음식점 운영"),
+            // 서버 데이터에 같은 이름이 두 번 들어가 있습니다.
+            JobDetail(id = 12, jobId = 2, jobDetailName = "카페/음식점 운영"),
+            JobDetail(id = 19, jobId = 3, jobDetailName = "대학생"),
+        )
+    )
 
     @Test
     fun `조건이 없으면 limit 만 보낸다`() {
@@ -36,10 +50,21 @@ class ChartFilterTest {
     }
 
     @Test
-    fun `연령대는 여러 개를 모아 보낸다`() {
-        val query = ChartFilter.toQuery(listOf("20 - 24세", "25 - 29세", "40세 이상"))
+    fun `연령대는 서버 구간 코드로 모아 보낸다`() {
+        val query = ChartFilter.toQuery(listOf("10대", "23~26세", "50대 이상"))
 
-        assertEquals(listOf("MID_20S", "LATE_20S", "FORTIES"), query.ageGroups)
+        assertEquals(listOf("TEEN", "MID_20S", "FIFTIES_PLUS"), query.ageGroups)
+    }
+
+    @Test
+    fun `연령대 칩은 서버 AgeGroup 을 빠짐없이 덮는다`() {
+        val ageTags = ChartFilter.sections().first { it.title == "연령대" }.tags - "전체"
+        val codes = ChartFilter.toQuery(ageTags).ageGroups
+
+        assertEquals(
+            listOf("TEEN", "EARLY_20S", "MID_20S", "LATE_20S", "EARLY_30S", "MID_30S", "LATE_30S", "FORTIES", "FIFTIES_PLUS"),
+            codes,
+        )
     }
 
     @Test
@@ -54,19 +79,34 @@ class ChartFilterTest {
     }
 
     @Test
-    fun `세부 직무 하나가 상위 직업 수만큼 id 를 만든다`() {
-        val query = ChartFilter.toQuery(listOf("개발자"))
+    fun `세부 직무는 서버에서 받은 id 로 바꾼다`() {
+        val query = ChartFilter.toQuery(listOf("IT/개발자", "대학생"), jobDetails)
 
-        assertEquals(listOf(3, 12, 21), query.jobDetailIds)
+        assertEquals(listOf(2, 19), query.jobDetailIds)
         // 세부 직무는 직업 id 에는 들어가지 않습니다.
         assertTrue(query.jobIds.isEmpty())
     }
 
     @Test
-    fun `세부 직무를 여러 개 고르면 id 가 이어 붙는다`() {
-        val query = ChartFilter.toQuery(listOf("디자이너", "기획자"))
+    fun `이름이 같은 세부 직무는 칩 하나로 보이고 id 는 모두 보낸다`() {
+        val section = ChartFilter.sections(jobDetails).first { it.title == "세부 직무" }
 
-        assertEquals(listOf(1, 10, 19, 2, 11, 20), query.jobDetailIds)
+        assertEquals(1, section.tags.count { it == "카페/음식점 운영" })
+        assertEquals(listOf(7, 12), ChartFilter.toQuery(listOf("카페/음식점 운영"), jobDetails).jobDetailIds)
+    }
+
+    @Test
+    fun `세부 직무를 못 받아왔으면 섹션을 감춘다`() {
+        assertFalse(ChartFilter.sections().any { it.title == "세부 직무" })
+        // 받아오기 전에 고른 이름은 보낼 id 가 없으니 무시합니다.
+        assertTrue(ChartFilter.toQuery(listOf("IT/개발자")).jobDetailIds.isEmpty())
+    }
+
+    @Test
+    fun `세부 직무 섹션은 직업과 관심사 사이에 둔다`() {
+        val titles = ChartFilter.sections(jobDetails).map { it.title }
+
+        assertEquals(listOf("성별", "연령대", "직업", "세부 직무", "관심사"), titles)
     }
 
     @Test
@@ -88,21 +128,25 @@ class ChartFilterTest {
     @Test
     fun `여러 섹션을 함께 고르면 각각의 자리에 들어간다`() {
         val query = ChartFilter.toQuery(
-            listOf("남성", "30 - 34세", "직장인", "개발자", "체력관리 및 운동"),
+            listOf("남성", "30~33세", "직장인", "사무직", "체력관리 및 운동"),
+            jobDetails,
         )
 
         assertEquals("MALE", query.gender)
         assertEquals(listOf("EARLY_30S"), query.ageGroups)
         assertEquals(listOf(1), query.jobIds)
-        assertEquals(listOf(3, 12, 21), query.jobDetailIds)
+        assertEquals(listOf(1), query.jobDetailIds)
         assertEquals(listOf("체력관리 및 운동"), query.interests)
     }
 
     @Test
     fun `고른 순서와 상관없이 섹션 순서대로 정렬한다`() {
-        val sorted = ChartFilter.sortBySectionOrder(listOf("개발자", "여성", "자격증 공부", "학생"))
+        val sorted = ChartFilter.sortBySectionOrder(
+            listOf("IT/개발자", "여성", "자격증 공부", "학생"),
+            ChartFilter.sections(jobDetails),
+        )
 
-        assertEquals(listOf("여성", "학생", "개발자", "자격증 공부"), sorted)
+        assertEquals(listOf("여성", "학생", "IT/개발자", "자격증 공부"), sorted)
     }
 
     @Test

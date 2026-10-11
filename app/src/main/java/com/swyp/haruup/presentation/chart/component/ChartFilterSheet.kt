@@ -32,6 +32,7 @@ import com.swyp.haruup.core.designsystem.HaruUpColor
 import com.swyp.haruup.core.designsystem.HaruUpTheme
 import com.swyp.haruup.core.designsystem.HaruUpType
 import com.swyp.haruup.presentation.chart.ChartFilter
+import com.swyp.haruup.presentation.chart.ChartFilterSection
 
 /** iOS 가 화면 높이의 70% 로 고정한 시트입니다. */
 private const val SHEET_HEIGHT_RATIO = 0.7f
@@ -65,6 +66,7 @@ private const val CLOSE_BUTTON_WEIGHT = 0.35f
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ChartFilterSheet(
+    sections: List<ChartFilterSection>,
     initialTags: List<String>,
     onApply: (List<String>) -> Unit,
     onDismiss: () -> Unit,
@@ -101,7 +103,7 @@ fun ChartFilterSheet(
                 .padding(top = DIVIDER_TO_CONTENT, bottom = CONTENT_BOTTOM),
             verticalArrangement = Arrangement.spacedBy(SECTION_SPACING),
         ) {
-            ChartFilter.SECTIONS.forEach { section ->
+            sections.forEach { section ->
                 Column {
                     Text(
                         text = section.title,
@@ -151,7 +153,7 @@ fun ChartFilterSheet(
                 textColor = HaruUpColor.AppWhite,
                 borderColor = null,
                 // 고른 순서가 아니라 섹션에 적힌 순서대로 칩이 보이도록 정렬합니다.
-                onClick = { onApply(ChartFilter.sortBySectionOrder(selected)) },
+                onClick = { onApply(ChartFilter.sortBySectionOrder(selected, sections)) },
                 modifier = Modifier.weight(1f),
             )
         }
@@ -212,7 +214,10 @@ private fun FooterButton(
 private fun ChartFilterSheetPreview() {
     HaruUpTheme {
         ChartFilterSheet(
-            initialTags = listOf("여성", "개발자"),
+            sections = ChartFilter.sections(
+                mapOf("사무직" to listOf(1), "IT/개발자" to listOf(2), "대학생" to listOf(19)),
+            ),
+            initialTags = listOf("여성", "IT/개발자"),
             onApply = {}, onDismiss = {},
         )
     }

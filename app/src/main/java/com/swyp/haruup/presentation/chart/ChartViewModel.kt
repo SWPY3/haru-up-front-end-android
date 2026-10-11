@@ -4,6 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.swyp.haruup.data.model.ChartItem
 import com.swyp.haruup.network.service.ChartService
+import com.swyp.haruup.network.service.JobService
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,7 +23,11 @@ data class ChartUiState(
     val isLoading: Boolean = false,
     val isTooltipVisible: Boolean = false,
     val isFilterSheetVisible: Boolean = false,
+    /** 서버에서 받아온 세부 직무 이름 → id. 비어 있으면 시트에서 세부 직무 섹션을 감춥니다. */
+    val jobDetails: JobDetailIds = emptyMap(),
 ) {
+    val filterSections: List<ChartFilterSection> = ChartFilter.sections(jobDetails)
+
     val hasData: Boolean = items.isNotEmpty()
 
     /** 태그가 하나라도 있으면 필터 바가 칩 목록 + 초기화 버튼 모양으로 바뀝니다. */
@@ -32,6 +40,7 @@ data class ChartUiState(
 @HiltViewModel
 class ChartViewModel @Inject constructor(
     private val chartService: ChartService,
+    private val jobService: JobService,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ChartUiState())
@@ -39,6 +48,30 @@ class ChartViewModel @Inject constructor(
 
     init {
         fetchRanking(emptyList())
+        loadJobDetails()
+    }
+
+    /**
+     * 직업마다 세부 직무를 받아 이름별 id 로 묶어 둡니다.
+     *
+     * 하나라도 못 받으면 섹션을 통째로 감춥니다.
+     * 일부만 보이면 그 직업의 세부 직무는 고를 수 없는데 이유를 알 수 없기 때문입니다.
+     */
+    private fun loadJobDetails() {
+        viewModelScope.launch {
+            // coroutineScope 로 묶어야 한 요청의 실패가 runCatching 에서 잡힙니다.
+            // 묶지 않으면 실패가 바깥 launch 로 퍼져 앱이 종료됩니다.
+            val details = runCatching {
+                coroutineScope {
+                    ChartFilter.JOB_ID.values
+                        .map { jobId -> async { jobService.jobDetails(jobId) } }
+                        .awaitAll()
+                        .flatten()
+                }
+            }.getOrNull() ?: return@launch
+
+            _uiState.update { it.copy(jobDetails = ChartFilter.groupJobDetails(details)) }
+        }
     }
 
     fun onInfoClick() {
@@ -81,7 +114,7 @@ class ChartViewModel @Inject constructor(
      * 조건을 바꾸다 통신이 한 번 실패했다고 화면이 비어 버리면 더 혼란스럽기 때문입니다. (iOS 와 같은 정책)
      */
     private fun fetchRanking(tags: List<String>) {
-        val query = ChartFilter.toQuery(tags)
+        val query = ChartFilter.toQuery(tags, _uiState.value.jobDetails)
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }

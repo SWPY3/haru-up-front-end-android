@@ -84,5 +84,13 @@ object ApiPath {
         const val MEMBER = "api/interests/member"
     }
 
-    // TODO: Job / Notification / Ad 경로 이관
+    object Job {
+        /**
+         * 직업 하나의 세부 직무 목록. jobId 를 쿼리로 보냅니다.
+         * 다른 API 와 달리 ApiResponse 로 감싸지 않은 배열이 옵니다.
+         */
+        const val DETAIL_LIST = "api/job/getJobDetailList"
+    }
+
+    // TODO: Notification / Ad 경로 이관
 }
