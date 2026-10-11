@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- XML 리소스에서만 필요한 최소 색상. 앱 색상은 core/designsystem/Color.kt 를 사용합니다. -->
 <resources>
-    <color name="haruup_green">#FF4CAF50</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="primary_blue_700">#2D6CFE</color>
+    <color name="app_white">#FFFFFF</color>
 </resources>

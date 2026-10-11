@@ -1,61 +1,225 @@
 package com.swyp.haruup.presentation.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navigation
+import com.swyp.haruup.core.component.PlaceholderScreen
 import com.swyp.haruup.presentation.agree.AgreeScreen
-import com.swyp.haruup.presentation.curation.CurationScreen
+import com.swyp.haruup.presentation.curation.character.CharacterCompleteScreen
+import com.swyp.haruup.presentation.curation.character.CharacterSelectScreen
+import com.swyp.haruup.presentation.curation.chat.CurationChatScreen
+import com.swyp.haruup.presentation.curation.curationViewModel
+import com.swyp.haruup.presentation.curation.personality.PersonalitySelectScreen
 import com.swyp.haruup.presentation.login.LoginScreen
+import com.swyp.haruup.presentation.mission.HomeMissionSelectScreen
+import com.swyp.haruup.presentation.mission.MissionDifficulty
+import com.swyp.haruup.presentation.mission.MissionItem
+import com.swyp.haruup.presentation.mission.TodayMissionScreen
+import com.swyp.haruup.presentation.mypage.interest.InterestEditScreen
+import com.swyp.haruup.presentation.mypage.notification.NotificationSettingScreen
+import com.swyp.haruup.presentation.mypage.profile.ProfileEditScreen
 import com.swyp.haruup.presentation.maintab.MainTabScreen
 import com.swyp.haruup.presentation.onboarding.OnboardingScreen
 import com.swyp.haruup.presentation.splash.SplashScreen
 
 @Composable
-fun HaruUpNavHost() {
+fun HaruUpNavHost(
+    sessionViewModel: SessionViewModel = hiltViewModel(),
+) {
     val navController = rememberNavController()
+
+    // 토큰 재발급까지 실패하면 어느 화면에 있든 로그인으로 돌려보냅니다.
+    // 뒤로 가기로 돌아올 수 없어야 하므로 스택을 비웁니다.
+    LaunchedEffect(navController) {
+        sessionViewModel.sessionExpired.collect {
+            val current = navController.currentDestination?.route
+            if (current == Route.LOGIN || current == Route.SPLASH) return@collect
+
+            navController.navigate(Route.LOGIN) {
+                popUpTo(0) { inclusive = true }
+            }
+        }
+    }
 
     NavHost(navController = navController, startDestination = Route.SPLASH) {
 
         composable(Route.SPLASH) {
+            // 스플래시로는 되돌아올 수 없어야 하므로 어디로 가든 스플래시는 걷어냅니다.
+            fun leaveSplash(route: String) {
+                navController.navigate(route) {
+                    popUpTo(Route.SPLASH) { inclusive = true }
+                }
+            }
+
             SplashScreen(
-                onLoggedIn = {
-                    navController.navigate(Route.MAIN_TAB) {
-                        popUpTo(Route.SPLASH) { inclusive = true }
-                    }
-                },
-                onLoggedOut = {
-                    navController.navigate(Route.LOGIN) {
-                        popUpTo(Route.SPLASH) { inclusive = true }
-                    }
-                },
+                onNeedLogin = { leaveSplash(Route.LOGIN) },
+                // 로그인은 되어 있지만 큐레이션을 마치지 않은 경우입니다. (iOS 와 동일)
+                onOnboardingRequired = { leaveSplash(Route.AGREE) },
+                onOnboardingCompleted = { leaveSplash(Route.MAIN_TAB) },
             )
         }
 
         composable(Route.LOGIN) {
-            LoginScreen(onLoginSuccess = { navController.navigate(Route.AGREE) })
+            LoginScreen(
+                onOnboardingRequired = { navController.navigate(Route.AGREE) },
+                onLoggedIn = {
+                    navController.navigate(Route.MAIN_TAB) {
+                        popUpTo(Route.LOGIN) { inclusive = true }
+                    }
+                },
+            )
         }
 
         composable(Route.AGREE) {
-            AgreeScreen(onAgreed = { navController.navigate(Route.ONBOARDING) })
+            AgreeScreen(
+                onBackClick = { navController.popBackStack() },
+                onAgreed = { navController.navigate(Route.ONBOARDING) },
+            )
         }
 
         composable(Route.ONBOARDING) {
-            OnboardingScreen(onFinished = { navController.navigate(Route.CURATION) })
+            OnboardingScreen(onFinished = { navController.navigate(Route.CURATION_GRAPH) })
         }
 
-        composable(Route.CURATION) {
-            CurationScreen(
+        curationGraph(navController)
+
+        composable(Route.MAIN_TAB) {
+            MainTabScreen(
+                onEditProfileClick = { navController.navigate(Route.PROFILE_EDIT) },
+                onNotificationSettingClick = { navController.navigate(Route.NOTIFICATION_SETTING) },
+                onSelectMissionClick = { fixedIds -> navController.navigate(Route.missionSelect(fixedIds)) },
+                // 로그아웃·탈퇴 후에는 뒤로 가기로 돌아올 수 없어야 하므로 스택을 비웁니다.
+                onSignedOut = {
+                    navController.navigate(Route.LOGIN) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
+            )
+        }
+
+        composable(
+            route = Route.MISSION_SELECT,
+            arguments = listOf(
+                navArgument(Route.ARG_FIXED_IDS) {
+                    type = NavType.StringType
+                    defaultValue = ""
+                }
+            ),
+        ) { entry ->
+            val fixedIds = entry.arguments?.getString(Route.ARG_FIXED_IDS)
+                .orEmpty()
+                .split(",")
+                .mapNotNull { it.toIntOrNull() }
+
+            // 닫거나 고르고 나면 홈으로 돌아갑니다. 홈은 다시 보일 때 미션을 새로 받아옵니다.
+            HomeMissionSelectScreen(
+                fixedIds = fixedIds,
+                onClose = { navController.popBackStack() },
+                onCompleted = { navController.popBackStack() },
+            )
+        }
+
+        composable(Route.PROFILE_EDIT) {
+            ProfileEditScreen(onBackClick = { navController.popBackStack() })
+        }
+
+        composable(Route.NOTIFICATION_SETTING) {
+            NotificationSettingScreen(onBackClick = { navController.popBackStack() })
+        }
+
+        composable(Route.INTEREST_EDIT) {
+            InterestEditScreen(onBackClick = { navController.popBackStack() })
+        }
+    }
+}
+
+/**
+ * 큐레이션 중첩 그래프입니다.
+ *
+ * 단계별 화면은 각자의 ViewModel 로 자기 화면 상태를 다루고,
+ * 다음 단계로 넘길 값만 그래프에 스코프된 CurationViewModel 에 씁니다.
+ * 그래프를 벗어나면 CurationViewModel 이 정리되므로 재진입 시 입력이 남지 않습니다.
+ */
+private fun NavGraphBuilder.curationGraph(navController: NavHostController) {
+    navigation(startDestination = CurationRoute.CHARACTER, route = Route.CURATION_GRAPH) {
+
+        composable(CurationRoute.CHARACTER) { entry ->
+            val curationViewModel = entry.curationViewModel(navController)
+
+            CharacterSelectScreen(
+                onNextClick = { characterId ->
+                    curationViewModel.setCharacterId(characterId)
+                    navController.navigate(CurationRoute.CHARACTER_COMPLETE)
+                },
+            )
+        }
+
+        composable(CurationRoute.CHARACTER_COMPLETE) { entry ->
+            val curationViewModel = entry.curationViewModel(navController)
+            val curationData by curationViewModel.curationData.collectAsStateWithLifecycle()
+
+            CharacterCompleteScreen(
+                // 캐릭터 선택을 거치지 않고 들어올 일은 없지만, iOS 와 동일하게 1 을 기본값으로 둡니다.
+                characterId = curationData.characterId ?: 1,
+                onFinished = { navController.navigate(CurationRoute.PERSONALITY) },
+            )
+        }
+
+        composable(CurationRoute.PERSONALITY) { entry ->
+            val curationViewModel = entry.curationViewModel(navController)
+
+            PersonalitySelectScreen(
+                onCompleted = { code ->
+                    curationViewModel.setPersonality(code)
+                    navController.navigate(CurationRoute.CHAT)
+                },
+            )
+        }
+
+        composable(CurationRoute.CHAT) { entry ->
+            val curationViewModel = entry.curationViewModel(navController)
+            val curationData by curationViewModel.curationData.collectAsStateWithLifecycle()
+
+            CurationChatScreen(
+                characterId = curationData.characterId ?: 1,
+                onCompleted = { nickname, missions ->
+                    curationViewModel.completeChat(nickname, missions) {
+                        navController.navigate(CurationRoute.TODAY_MISSION)
+                    }
+                },
+            )
+        }
+
+        composable(CurationRoute.TODAY_MISSION) { entry ->
+            val curationViewModel = entry.curationViewModel(navController)
+            val curationData by curationViewModel.curationData.collectAsStateWithLifecycle()
+
+            TodayMissionScreen(
+                missions = curationData.chatbotMissions.map { mission ->
+                    MissionItem(
+                        id = mission.id,
+                        content = mission.missionContent,
+                        description = mission.missionDescription,
+                        difficulty = MissionDifficulty.from(mission.difficulty),
+                        expEarned = mission.expEarned,
+                    )
+                },
                 onCompleted = {
                     navController.navigate(Route.MAIN_TAB) {
                         popUpTo(Route.LOGIN) { inclusive = true }
                     }
-                }
+                },
             )
-        }
-
-        composable(Route.MAIN_TAB) {
-            MainTabScreen()
         }
     }
 }

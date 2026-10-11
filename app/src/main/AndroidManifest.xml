@@ -25,7 +25,23 @@
             </intent-filter>
         </activity>
 
-        <!-- 카카오 로그인 적용 시 AuthCodeHandlerActivity 를 여기에 추가합니다. -->
+        <!--
+            카카오톡으로 로그인한 뒤 앱으로 돌아올 때 받는 창입니다.
+            scheme 은 build.gradle.kts 가 local.properties 의 앱 키로 채웁니다.
+            키가 없으면 scheme 이 "kakao" 뿐이라 아무 데서도 호출되지 않습니다.
+        -->
+        <activity
+            android:name="com.kakao.sdk.auth.AuthCodeHandlerActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:host="oauth"
+                    android:scheme="${kakaoRedirectScheme}" />
+            </intent-filter>
+        </activity>
 
     </application>
 

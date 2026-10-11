@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- iOS 앱 아이콘의 그라데이션과 동일합니다. (linear/splash_start → splash_end) -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="270"
+        android:startColor="#8BAEFF"
+        android:endColor="#1359FE" />
+</shape>

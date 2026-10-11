@@ -6,7 +6,7 @@ package com.swyp.haruup.presentation.navigation
  * 앱 실행
  *   └ 스플래시
  * 로그인 미완료
- *   └ 로그인 → 약관 동의 → 온보딩 → 큐레이션(9단계)
+ *   └ 로그인 → 약관 동의 → 온보딩 → 큐레이션
  * 로그인 완료
  *   └ 메인 탭 (홈 / 기록 / 차트 / 마이페이지)
  */
@@ -15,8 +15,51 @@ object Route {
     const val LOGIN = "login"
     const val AGREE = "agree"
     const val ONBOARDING = "onboarding"
-    const val CURATION = "curation"
     const val MAIN_TAB = "main_tab"
+
+    // 마이페이지에서 들어가는 화면들
+    const val PROFILE_EDIT = "profile_edit"
+    const val NOTIFICATION_SETTING = "notification_setting"
+    const val INTEREST_EDIT = "interest_edit"
+
+    /** 오늘 이미 고른 미션 ID. 쉼표로 이어 붙입니다. */
+    const val ARG_FIXED_IDS = "fixedIds"
+
+    /**
+     * 홈에서 오늘의 미션을 고르거나 더하는 화면. 탭바 위를 덮어야 해서 메인 탭 밖에 둡니다.
+     * (iOS 는 overFullScreen 모달로 띄웁니다)
+     */
+    const val MISSION_SELECT = "mission_select?$ARG_FIXED_IDS={$ARG_FIXED_IDS}"
+
+    fun missionSelect(fixedIds: List<Int>): String =
+        "mission_select?$ARG_FIXED_IDS=${fixedIds.joinToString(",")}"
+
+    /**
+     * 큐레이션 중첩 그래프.
+     * CurationViewModel 이 이 경로의 BackStackEntry 에 스코프되어 단계 간 데이터를 공유합니다.
+     */
+    const val CURATION_GRAPH = "curation"
+}
+
+/**
+ * 큐레이션 단계별 경로입니다.
+ * iOS AppCoordinator.showCurationFlow 의 순서를 그대로 따릅니다.
+ */
+object CurationRoute {
+    /** ① 캐릭터 선택 */
+    const val CHARACTER = "curation/character"
+
+    /** ② 캐릭터 선택 완료 */
+    const val CHARACTER_COMPLETE = "curation/character_complete"
+
+    /** ③ 성격 선택 */
+    const val PERSONALITY = "curation/personality"
+
+    /** ④ 큐레이션 챗봇 */
+    const val CHAT = "curation/chat"
+
+    /** 큐레이션 직후 오늘의 미션 선택 */
+    const val TODAY_MISSION = "curation/today_mission"
 }
 
 /** 메인 탭 하위 경로 */
